@@ -40,7 +40,7 @@ play-services-tflite = "16.4.0"
 play-services-mlkit-text-recognition = "19.0.0"
 
 # Kotlin Serialization
-kotlinx-serialization-json = "1.6.0"
+kotlinx-serialization-json = "1.9.0"
 
 # Testing dependencies
 mockito = "5.8.0"
