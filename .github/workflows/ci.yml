@@ -37,7 +37,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v2
+        uses: gradle/wrapper-validation-action@v3
 
       - name: Build
         run: ./gradlew --stacktrace --no-daemon build
