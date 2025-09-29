@@ -62,7 +62,7 @@ navigation = "2.8.8"
 work = "2.10.5"
 
 # Dagger (Dependency Injection)
-dagger = "2.57.1"
+dagger = "2.57.2"
 
 # KSP (Kotlin Symbol Processing)
 ksp = "2.2.20-2.0.3"
