@@ -43,7 +43,7 @@ play-services-mlkit-text-recognition = "19.0.0"
 kotlinx-serialization-json = "1.6.0"
 
 # Testing dependencies
-mockito = "5.8.0"
+mockito = "5.20.0"
 mockito-kotlin = "5.3.1"
 test-rules = "1.6.1"
 test-runner = "1.6.2"
