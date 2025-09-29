@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Store Metadata -->
+    <string name="app_short_description">Instant translation with voice support</string>
+    <string name="app_full_description">Global Translate is a powerful, real-time translation app that breaks down language barriers with advanced AI technology. Translate text, voice, and images instantly across 100+ languages with offline support and voice recognition.
+
+Key Features:
+• Real-time text translation in 100+ languages
+• Voice-to-voice translation with speech recognition
+• Camera translation for signs, menus, and documents
+• Offline translation for popular language pairs
+• Conversation mode for two-way communication
+• History and favorites for easy access
+• Dark mode and customizable interface
+• Privacy-focused with local processing options
+
+Perfect for travelers, students, professionals, and anyone who needs reliable translation on the go. Download Global Translate today and communicate with confidence in any language!</string>
+    
+    <!-- App Category and Tags -->
+    <string name="app_category">Tools</string>
+    <string name="app_tags">translation,language,voice,offline,travel,communication,ai,multilingual</string>
+    
+    <!-- Developer Information -->
+    <string name="developer_name">Global Translate Team</string>
+    <string name="developer_email">support@gloabtranslate.com</string>
+    <string name="developer_website">https://gloabtranslate.com</string>
+    <string name="developer_privacy_policy">https://gloabtranslate.com/privacy</string>
+    
+    <!-- App Store Compliance -->
+    <string name="app_size">25 MB</string>
+    <string name="minimum_android_version">Android 14 (API 34)</string>
+    <string name="permissions_required">Microphone, Camera, Internet, Storage</string>
+    
+    <!-- Feature Highlights -->
+    <string name="feature_1">Real-time translation in 100+ languages</string>
+    <string name="feature_2">Voice recognition and text-to-speech</string>
+    <string name="feature_3">Offline translation capabilities</string>
+    <string name="feature_4">Camera translation for signs and documents</string>
+    <string name="feature_5">Conversation mode for two-way communication</string>
+    <string name="feature_6">History and favorites management</string>
+    <string name="feature_7">Dark mode and customizable interface</string>
+    <string name="feature_8">Privacy-focused with local processing</string>
+    
+    <!-- Screenshots Descriptions -->
+    <string name="screenshot_1_description">Main translation interface with text input</string>
+    <string name="screenshot_2_description">Voice translation with microphone button</string>
+    <string name="screenshot_3_description">Camera translation scanning a sign</string>
+    <string name="screenshot_4_description">Language selection screen</string>
+    <string name="screenshot_5_description">Settings and preferences</string>
+    <string name="screenshot_6_description">Translation history and favorites</string>
+    <string name="screenshot_7_description">Conversation mode interface</string>
+    <string name="screenshot_8_description">Offline translation options</string>
+    
+    <!-- Keywords for App Store Optimization -->
+    <string name="keywords">translation,language,voice,offline,travel,communication,ai,multilingual,real-time,camera,conversation,privacy,local</string>
+    
+    <!-- App Store Promotional Text -->
+    <string name="promotional_text">Break down language barriers with Global Translate! Real-time translation, voice recognition, and offline support in one powerful app. Perfect for travelers, students, and professionals.</string>
+    
+    <!-- What\'s New -->
+    <string name="whats_new">• New voice translation features
+• Improved offline translation accuracy
+• Enhanced camera translation
+• Better conversation mode
+• Updated language support
+• Performance improvements
+• Bug fixes and stability enhancements</string>
+</resources>

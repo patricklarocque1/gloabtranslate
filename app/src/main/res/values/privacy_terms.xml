@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Privacy Policy -->
+    <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_content">Last updated: [Date]
+
+Global Translate Privacy Policy
+
+1. Information We Collect
+We collect minimal information necessary to provide our translation services:
+• Translation text (processed locally when possible)
+• Voice recordings (processed locally when possible)
+• App usage analytics (anonymized)
+• Device information for compatibility
+
+2. How We Use Your Information
+• Provide translation services
+• Improve app performance and accuracy
+• Analyze usage patterns (anonymized)
+• Provide customer support
+
+3. Data Storage and Security
+• All data is encrypted in transit and at rest
+• Local processing preferred over cloud processing
+• No personal data stored longer than necessary
+• Industry-standard security measures implemented
+
+4. Third-Party Services
+We may use third-party services for:
+• Translation APIs (when offline not available)
+• Analytics (anonymized data only)
+• Crash reporting (anonymized data only)
+
+5. Your Rights
+• Access your data
+• Delete your data
+• Opt-out of analytics
+• Export your data
+• Withdraw consent
+
+6. Children\'s Privacy
+Our app is not intended for children under 13. We do not knowingly collect personal information from children.
+
+7. Changes to This Policy
+We may update this privacy policy. We will notify you of any changes by posting the new policy in the app.
+
+8. Contact Us
+If you have questions about this privacy policy, contact us at:
+Email: privacy@gloabtranslate.com
+Website: https://gloabtranslate.com/privacy</string>
+    
+    <!-- Terms of Service -->
+    <string name="terms_of_service_title">Terms of Service</string>
+    <string name="terms_of_service_content">Last updated: [Date]
+
+Global Translate Terms of Service
+
+1. Acceptance of Terms
+By using Global Translate, you agree to these terms of service.
+
+2. Description of Service
+Global Translate provides translation services including:
+• Text translation
+• Voice translation
+• Camera translation
+• Offline translation
+
+3. User Responsibilities
+• Use the service lawfully
+• Respect intellectual property rights
+• Do not abuse the service
+• Provide accurate information
+
+4. Service Availability
+• We strive for 99% uptime
+• Service may be temporarily unavailable for maintenance
+• Offline features available when online service is down
+
+5. Intellectual Property
+• You retain rights to your content
+• We own the app and its features
+• Third-party content may be subject to separate licenses
+
+6. Limitation of Liability
+• Service provided \"as is\"
+• No guarantee of accuracy
+• Limited liability for damages
+• User assumes responsibility for translations
+
+7. Privacy
+• Your privacy is important to us
+• See our Privacy Policy for details
+• We collect minimal data necessary
+
+8. Termination
+• We may terminate service for violations
+• You may stop using the service anytime
+• Data deletion upon termination
+
+9. Changes to Terms
+• We may update these terms
+• Continued use constitutes acceptance
+• We will notify of significant changes
+
+10. Contact Information
+For questions about these terms:
+Email: legal@gloabtranslate.com
+Website: https://gloabtranslate.com/terms</string>
+    
+    <!-- App Store Compliance -->
+    <string name="compliance_title">App Store Compliance</string>
+    <string name="compliance_content">Global Translate complies with all major app store requirements:
+
+Google Play Store:
+• Follows Google Play Developer Policy
+• Implements proper permission requests
+• Uses targetSdkVersion 36
+• Complies with data safety requirements
+• Implements proper content rating
+
+Apple App Store:
+• Follows App Store Review Guidelines
+• Implements proper privacy practices
+• Uses appropriate content rating
+• Complies with data collection requirements
+
+General Compliance:
+• GDPR compliant (EU users)
+• CCPA compliant (California users)
+• COPPA compliant (children\'s privacy)
+• Accessibility guidelines followed
+• Security best practices implemented</string>
+    
+    <!-- Data Safety Information -->
+    <string name="data_safety_title">Data Safety</string>
+    <string name="data_safety_content">Data Collection and Usage:
+
+Data We Collect:
+• Translation text (processed locally when possible)
+• Voice recordings (processed locally when possible)
+• App usage analytics (anonymized)
+• Crash reports (anonymized)
+• Device information (for compatibility)
+
+How We Use Data:
+• Provide translation services
+• Improve app performance
+• Analyze usage patterns
+• Provide customer support
+
+Data Sharing:
+• We do not sell your data
+• We may share anonymized analytics
+• We may share data with service providers
+• We may share data if required by law
+
+Data Security:
+• All data encrypted in transit
+• All data encrypted at rest
+• Regular security audits
+• Access controls implemented
+
+Your Rights:
+• Access your data
+• Delete your data
+• Export your data
+• Opt-out of data collection
+• Withdraw consent</string>
+    
+    <!-- Accessibility Statement -->
+    <string name="accessibility_title">Accessibility</string>
+    <string name="accessibility_content">Global Translate is committed to accessibility:
+
+Features:
+• Screen reader support
+• High contrast mode
+• Large text support
+• Voice control compatibility
+• Keyboard navigation
+• Color blind friendly design
+
+Compliance:
+• WCAG 2.1 AA standards
+• Android accessibility guidelines
+• iOS accessibility guidelines
+• Section 508 compliance
+
+Support:
+• Accessibility feedback welcome
+• Regular accessibility testing
+• Continuous improvement
+• User feedback integration</string>
+</resources>

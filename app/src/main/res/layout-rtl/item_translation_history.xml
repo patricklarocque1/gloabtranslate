@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:gravity="center_vertical"
+    android:background="?attr/selectableItemBackground"
+    android:minHeight="80dp">
+
+    <!-- Status and Actions -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_marginEnd="8dp">
+
+        <!-- Status Indicator -->
+        <ImageView
+            android:id="@+id/status_indicator"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginBottom="8dp"
+            android:src="@drawable/ic_check_circle"
+            android:contentDescription="@string/translation_status"
+            tools:src="@drawable/ic_check_circle" />
+
+        <!-- Action Buttons -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <!-- Copy Button -->
+            <ImageButton
+                android:id="@+id/copy_button"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="4dp"
+                android:src="@drawable/ic_copy"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/copy_text"
+                android:scaleType="centerInside" />
+
+            <!-- Share Button -->
+            <ImageButton
+                android:id="@+id/share_button"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="4dp"
+                android:src="@drawable/ic_share"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/share_translation"
+                android:scaleType="centerInside" />
+
+            <!-- Favorite Button -->
+            <ImageButton
+                android:id="@+id/favorite_button"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_favorite_border"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/toggle_favorite"
+                android:scaleType="centerInside"
+                tools:src="@drawable/ic_favorite_filled" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Translation Content -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- Original Text -->
+        <TextView
+            android:id="@+id/original_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold"
+            android:maxLines="2"
+            android:ellipsize="end"
+            tools:text="Original text to be translated" />
+
+        <!-- Translated Text -->
+        <TextView
+            android:id="@+id/translated_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginTop="4dp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            tools:text="Translated text result" />
+
+        <!-- Language and Timestamp Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical">
+
+            <!-- Confidence -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginEnd="8dp"
+                android:gravity="center_vertical"
+                android:visibility="gone">
+
+                <ProgressBar
+                    android:id="@+id/confidence_progress_bar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="32dp"
+                    android:layout_height="4dp"
+                    android:max="100"
+                    android:progress="85"
+                    android:progressTint="@color/confidence_high" />
+
+                <TextView
+                    android:id="@+id/confidence_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
+                    android:textSize="10sp"
+                    android:textColor="@color/text_disabled"
+                    tools:text="85%" />
+
+            </LinearLayout>
+
+            <!-- Timestamp -->
+            <TextView
+                android:id="@+id/timestamp_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="@color/text_disabled"
+                tools:text="2 hours ago" />
+
+            <!-- Language Info -->
+            <TextView
+                android:id="@+id/language_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:background="@drawable/background_language_code"
+                android:padding="4dp"
+                android:layout_marginStart="8dp"
+                tools:text="EN → ES" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Selection Indicator -->
+    <ImageView
+        android:id="@+id/selection_indicator"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="12dp"
+        android:src="@drawable/ic_radio_button_unchecked"
+        android:contentDescription="@string/select_item"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:src="@drawable/ic_check_circle" />
+
+</LinearLayout>

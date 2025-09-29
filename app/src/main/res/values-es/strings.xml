@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Translation Result Fragment -->
+    <string name="source_language">Idioma de origen</string>
+    <string name="target_language">Idioma de destino</string>
+    <string name="original_text_placeholder">El texto original aparecerá aquí</string>
+    <string name="translated_text_placeholder">La traducción aparecerá aquí</string>
+    <string name="translation_arrow">Flecha de traducción</string>
+    <string name="confidence_percentage">%1$d%%</string>
+    <string name="translation_successful">Exitoso</string>
+    <string name="translation_failed">Fallido</string>
+    <string name="translated_time_ago">Traducido %1$s</string>
+    <string name="translation_mode">Modo de traducción</string>
+    <string name="on_device_translation">En dispositivo</string>
+    <string name="cloud_translation">Nube</string>
+    
+    <!-- Action Buttons -->
+    <string name="copy_translation">Copiar traducción</string>
+    <string name="share_translation">Compartir traducción</string>
+    <string name="add_to_favorites">Agregar a favoritos</string>
+    <string name="remove_from_favorites">Quitar de favoritos</string>
+    <string name="play_audio">Reproducir audio</string>
+    <string name="view_history">Ver historial</string>
+    <string name="translation_settings">Configuración de traducción</string>
+    
+    <!-- Additional Features -->
+    <string name="alternative_translations">Traducciones alternativas</string>
+    <string name="alternative_translation_placeholder">Alternativa</string>
+    <string name="show_more">Mostrar más</string>
+    <string name="show_less">Mostrar menos</string>
+    <string name="edit_translation">Editar</string>
+    <string name="report_issue">Reportar</string>
+    
+    <!-- Feedback Messages -->
+    <string name="text_copied">Texto copiado al portapapeles</string>
+    <string name="just_now">Ahora mismo</string>
+    <string name="minutes_ago">hace %1$d minutos</string>
+    <string name="hours_ago">hace %1$d horas</string>
+    <string name="days_ago">hace %1$d días</string>
+    
+    <!-- Language Selection -->
+    <string name="select_language">Seleccionar idioma</string>
+    <string name="choose_language_for_translation">Elige un idioma para la traducción</string>
+    <string name="close_language_selection">Cerrar selección de idioma</string>
+    <string name="search_languages">Buscar idiomas</string>
+    <string name="search_source_languages">Buscar idiomas de origen</string>
+    <string name="search_target_languages">Buscar idiomas de destino</string>
+    <string name="search_languages_hint">Buscar idiomas por nombre o código</string>
+    <string name="clear_search">Limpiar búsqueda</string>
+    <string name="filter_by">Filtrar por</string>
+    <string name="all_languages">Todos</string>
+    <string name="recent_languages">Recientes</string>
+    <string name="favorite_languages">Favoritos</string>
+    <string name="on_device_languages">En dispositivo</string>
+    <string name="cloud_languages">Nube</string>
+    <string name="no_languages_found">No se encontraron idiomas</string>
+    <string name="no_languages_found_search">No se encontraron idiomas para "%1$s"</string>
+    <string name="no_recent_languages">No hay idiomas recientes</string>
+    <string name="no_favorite_languages">No hay idiomas favoritos</string>
+    <string name="no_on_device_languages">No hay idiomas en dispositivo</string>
+    <string name="no_cloud_languages">No hay idiomas en nube</string>
+    <string name="no_languages_available">No hay idiomas disponibles</string>
+    <string name="error_loading_languages">Error al cargar idiomas</string>
+    
+    <!-- Settings -->
+    <string name="settings">Configuración</string>
+    <string name="search_settings">Buscar configuración</string>
+    <string name="search_settings_hint">Buscar configuración por nombre o descripción</string>
+    <string name="all_settings">Todas</string>
+    <string name="general_settings">General</string>
+    <string name="audio_settings">Audio</string>
+    <string name="ui_settings">Interfaz</string>
+    <string name="privacy_settings">Privacidad</string>
+    <string name="advanced_settings">Avanzado</string>
+    <string name="no_settings_found">No se encontró configuración</string>
+    <string name="no_settings_found_search">No se encontró configuración para "%1$s"</string>
+    <string name="error_loading_settings">Error al cargar configuración</string>
+    <string name="setting_updated">Configuración actualizada</string>
+    <string name="setting_update_failed">Error al actualizar configuración</string>
+    
+    <!-- General Settings -->
+    <string name="theme">Tema</string>
+    <string name="theme_description">Elige tu tema preferido</string>
+    <string name="system_theme">Sistema</string>
+    <string name="light_theme">Claro</string>
+    <string name="dark_theme">Oscuro</string>
+    <string name="app_language">Idioma de la aplicación</string>
+    <string name="app_language_description">Elige el idioma para la interfaz de la aplicación</string>
+    <string name="english">Inglés</string>
+    <string name="spanish">Español</string>
+    <string name="french">Francés</string>
+    <string name="german">Alemán</string>
+    <string name="italian">Italiano</string>
+    <string name="portuguese">Portugués</string>
+    <string name="russian">Ruso</string>
+    <string name="chinese">Chino</string>
+    <string name="japanese">Japonés</string>
+    <string name="korean">Coreano</string>
+    <string name="arabic">Árabe</string>
+    <string name="hindi">Hindi</string>
+    <string name="auto_detect">Detección automática</string>
+    
+    <!-- App Name -->
+    <string name="app_name">Traductor Global</string>
+</resources>

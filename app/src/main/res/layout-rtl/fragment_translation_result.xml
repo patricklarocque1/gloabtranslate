@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/background_translation_result"
+    android:elevation="4dp">
+
+    <!-- Original Text Container -->
+    <LinearLayout
+        android:id="@+id/original_text_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/background_original_text"
+        android:padding="16dp"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/source_language_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/source_language"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="4dp"
+            tools:text="English" />
+
+        <TextView
+            android:id="@+id/original_text_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/original_text_placeholder"
+            android:textSize="16sp"
+            android:textColor="@color/text_primary"
+            android:lineSpacingExtra="4dp"
+            android:background="?attr/selectableItemBackground"
+            android:padding="8dp"
+            android:minHeight="48dp"
+            android:gravity="center_vertical"
+            tools:text="Hello, how are you today?" />
+
+    </LinearLayout>
+
+    <!-- Translation Arrow (RTL version) -->
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginVertical="8dp"
+        android:src="@drawable/ic_translation_arrow_rtl"
+        android:contentDescription="@string/translation_arrow"
+        android:alpha="0.6" />
+
+    <!-- Translated Text Container -->
+    <LinearLayout
+        android:id="@+id/translated_text_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/background_translated_text"
+        android:padding="16dp"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:id="@+id/target_language_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/target_language"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="4dp"
+            tools:text="Spanish" />
+
+        <TextView
+            android:id="@+id/translated_text_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/translated_text_placeholder"
+            android:textSize="18sp"
+            android:textColor="@color/text_primary"
+            android:lineSpacingExtra="4dp"
+            android:background="?attr/selectableItemBackground"
+            android:padding="8dp"
+            android:minHeight="56dp"
+            android:gravity="center_vertical"
+            android:textStyle="bold"
+            tools:text="Hola, ¿cómo estás hoy?" />
+
+    </LinearLayout>
+
+    <!-- Confidence and Status Container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <!-- Confidence Bar -->
+        <ProgressBar
+            android:id="@+id/confidence_progress_bar"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="0dp"
+            android:layout_height="8dp"
+            android:layout_weight="1"
+            android:max="100"
+            android:progress="85"
+            android:progressTint="@color/confidence_medium"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <!-- Confidence Text -->
+        <TextView
+            android:id="@+id/confidence_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="@string/confidence_percentage"
+            android:textSize="12sp"
+            android:textColor="@color/confidence_medium"
+            android:visibility="gone"
+            tools:text="85%"
+            tools:visibility="visible" />
+
+        <!-- Translation Status -->
+        <TextView
+            android:id="@+id/translation_status_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:text="@string/translation_successful"
+            android:textSize="12sp"
+            android:textColor="@color/success_color"
+            tools:text="Successful" />
+
+    </LinearLayout>
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="16dp">
+
+        <ImageButton
+            android:id="@+id/copy_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginHorizontal="8dp"
+            android:src="@drawable/ic_copy"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/copy_translation"
+            android:scaleType="centerInside"
+            tools:src="@drawable/ic_copy" />
+
+        <ImageButton
+            android:id="@+id/share_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginHorizontal="8dp"
+            android:src="@drawable/ic_share"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/share_translation"
+            android:scaleType="centerInside"
+            tools:src="@drawable/ic_share" />
+
+        <ImageButton
+            android:id="@+id/favorite_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginHorizontal="8dp"
+            android:src="@drawable/ic_favorite_border"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/add_to_favorites"
+            android:scaleType="centerInside"
+            tools:src="@drawable/ic_favorite_border" />
+
+        <ImageButton
+            android:id="@+id/tts_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginHorizontal="8dp"
+            android:src="@drawable/ic_volume_up"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/play_audio"
+            android:scaleType="centerInside"
+            tools:src="@drawable/ic_volume_up" />
+
+        <ImageButton
+            android:id="@+id/history_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginHorizontal="8dp"
+            android:src="@drawable/ic_history"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/view_history"
+            android:scaleType="centerInside"
+            tools:src="@drawable/ic_history" />
+
+        <ImageButton
+            android:id="@+id/settings_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginHorizontal="8dp"
+            android:src="@drawable/ic_settings"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/translation_settings"
+            android:scaleType="centerInside"
+            tools:src="@drawable/ic_settings" />
+
+    </LinearLayout>
+
+    <!-- Alternatives Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/alternative_translations"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="8dp"
+            tools:text="Alternative translations" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/alternatives_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            tools:listitem="@layout/item_translation_alternative"
+            tools:itemCount="3" />
+
+    </LinearLayout>
+
+    <!-- Expand/Collapse Button -->
+    <Button
+        android:id="@+id/expand_collapse_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="@string/show_more"
+        android:textSize="12sp"
+        android:drawableStart="@drawable/ic_expand_more"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:padding="8dp"
+        tools:text="Show more" />
+
+    <!-- Additional Info Container (Initially Hidden) -->
+    <LinearLayout
+        android:id="@+id/additional_info_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@drawable/background_additional_info"
+        android:layout_marginTop="16dp"
+        android:alpha="0"
+        android:visibility="gone">
+
+        <!-- Translation Metadata -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/translation_time_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/translated_time_ago"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="4dp"
+                tools:text="Translated 2 minutes ago" />
+
+            <TextView
+                android:id="@+id/translation_mode_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/translation_mode"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                tools:text="On-device translation" />
+
+        </LinearLayout>
+
+        <!-- Additional Actions -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="@string/edit_translation"
+                android:textSize="12sp"
+                android:drawableEnd="@drawable/ic_edit"
+                style="@style/Widget.AppCompat.Button.Borderless" />
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="@string/report_issue"
+                android:textSize="12sp"
+                android:drawableEnd="@drawable/ic_report"
+                style="@style/Widget.AppCompat.Button.Borderless" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

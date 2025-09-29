@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/background_primary">
+
+    <LinearLayout
+        android:id="@+id/root_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Toolbar -->
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/surface"
+            android:elevation="4dp"
+            app:title="@string/real_time_transcription"
+            app:titleTextColor="@color/text_primary" />
+
+        <!-- Status Container -->
+        <LinearLayout
+            android:id="@+id/status_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center_vertical"
+            android:background="@color/surface">
+
+            <!-- Status Indicator -->
+            <ImageView
+                android:id="@+id/status_indicator"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_mic_off"
+                android:contentDescription="@string/transcription_status"
+                android:layout_marginEnd="12dp" />
+
+            <!-- Status Text -->
+            <TextView
+                android:id="@+id/status_text_view"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary"
+                android:text="@string/status_idle"
+                tools:text="Listening..." />
+
+            <!-- Language Indicator -->
+            <TextView
+                android:id="@+id/language_indicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:background="@drawable/background_language_code"
+                android:padding="8dp"
+                android:layout_marginEnd="8dp"
+                tools:text="EN" />
+
+            <!-- Confidence Indicator -->
+            <TextView
+                android:id="@+id/confidence_indicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textColor="@color/confidence_high"
+                android:background="@drawable/background_language_code"
+                android:padding="8dp"
+                tools:text="95%" />
+
+        </LinearLayout>
+
+        <!-- Control Container -->
+        <LinearLayout
+            android:id="@+id/control_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center"
+            android:background="@color/surface">
+
+            <!-- Start/Stop Button -->
+            <Button
+                android:id="@+id/start_stop_button"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="@string/start_transcription"
+                android:textSize="16sp"
+                android:textColor="@color/white"
+                android:background="@drawable/background_button_primary"
+                tools:text="Start" />
+
+            <!-- Pause/Resume Button -->
+            <Button
+                android:id="@+id/pause_resume_button"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="@string/pause_transcription"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary"
+                android:background="@drawable/background_button_secondary"
+                android:enabled="false"
+                tools:text="Pause" />
+
+            <!-- Clear Button -->
+            <Button
+                android:id="@+id/clear_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/ic_clear"
+                android:background="@drawable/background_button_secondary"
+                android:enabled="false"
+                android:contentDescription="@string/clear_transcription" />
+
+            <!-- Export Button -->
+            <Button
+                android:id="@+id/export_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_export"
+                android:background="@drawable/background_button_secondary"
+                android:enabled="false"
+                android:contentDescription="@string/export_transcription" />
+
+        </LinearLayout>
+
+        <!-- Transcription Container -->
+        <LinearLayout
+            android:id="@+id/transcription_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="@color/surface">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/final_transcription"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="8dp"
+                tools:text="Final Transcription" />
+
+            <!-- Final Transcription Text -->
+            <TextView
+                android:id="@+id/transcription_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:textColor="@color/text_primary"
+                android:background="@drawable/background_transcription_text"
+                android:padding="16dp"
+                android:minHeight="120dp"
+                android:gravity="top|start"
+                android:visibility="gone"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="@string/transcription_text"
+                tools:text="This is the final transcribed text that will be displayed here." />
+
+            <!-- Confidence Bar -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="8dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/confidence"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginEnd="8dp" />
+
+                <ProgressBar
+                    android:id="@+id/confidence_progress_bar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="8dp"
+                    android:layout_weight="1"
+                    android:max="100"
+                    android:progress="85"
+                    android:progressTint="@color/confidence_high" />
+
+                <TextView
+                    android:id="@+id/confidence_indicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:textSize="12sp"
+                    android:textColor="@color/confidence_high"
+                    tools:text="85%" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Real-time Container -->
+        <LinearLayout
+            android:id="@+id/real_time_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="@color/background_secondary">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/real_time_transcription"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="8dp"
+                tools:text="Real-time Transcription" />
+
+            <!-- Real-time Text -->
+            <TextView
+                android:id="@+id/real_time_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary"
+                android:background="@drawable/background_real_time_text"
+                android:padding="16dp"
+                android:minHeight="80dp"
+                android:gravity="top|start"
+                android:visibility="gone"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="@string/real_time_text"
+                tools:text="This is the real-time transcription text..." />
+
+            <!-- Partial Text (for incomplete words) -->
+            <TextView
+                android:id="@+id/partial_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:textStyle="italic"
+                android:layout_marginTop="4dp"
+                android:visibility="gone"
+                android:alpha="0.7"
+                tools:text="...partial text being processed" />
+
+        </LinearLayout>
+
+        <!-- History Container -->
+        <LinearLayout
+            android:id="@+id/history_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="@color/surface">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/transcription_history"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_primary"
+                    android:textStyle="bold"
+                    tools:text="Transcription History" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/recent_transcriptions"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    tools:text="Recent" />
+
+            </LinearLayout>
+
+            <!-- History List -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="200dp">
+
+                <!-- Loading Indicator -->
+                <ProgressBar
+                    android:id="@+id/loading_indicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:visibility="gone" />
+
+                <!-- History RecyclerView -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/history_recycler_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    tools:listitem="@layout/item_transcription_history"
+                    tools:itemCount="5" />
+
+                <!-- Empty State -->
+                <LinearLayout
+                    android:id="@+id/empty_state_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="16dp"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:id="@+id/empty_state_image_view"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@drawable/ic_history_empty"
+                        android:contentDescription="@string/no_transcription_history"
+                        android:alpha="0.6" />
+
+                    <TextView
+                        android:id="@+id/empty_state_text_view"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/no_transcription_history"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_secondary"
+                        android:gravity="center"
+                        tools:text="No transcription history" />
+
+                </LinearLayout>
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

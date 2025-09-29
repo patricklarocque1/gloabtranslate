@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:gravity="center_vertical"
+    android:background="?attr/selectableItemBackground"
+    android:minHeight="64dp">
+
+    <!-- Status Indicator -->
+    <ImageView
+        android:id="@+id/status_indicator"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginEnd="12dp"
+        android:src="@drawable/ic_check_circle"
+        android:contentDescription="@string/transcription_status"
+        tools:src="@drawable/ic_check_circle" />
+
+    <!-- Transcription Content -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- Transcription Text -->
+        <TextView
+            android:id="@+id/transcription_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textColor="@color/text_primary"
+            android:maxLines="2"
+            android:ellipsize="end"
+            tools:text="This is a sample transcription text that was recorded" />
+
+        <!-- Language and Timestamp Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical">
+
+            <!-- Language Info -->
+            <TextView
+                android:id="@+id/language_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:background="@drawable/background_language_code"
+                android:padding="4dp"
+                android:layout_marginEnd="8dp"
+                tools:text="EN" />
+
+            <!-- Timestamp -->
+            <TextView
+                android:id="@+id/timestamp_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="@color/text_disabled"
+                tools:text="2 hours ago" />
+
+            <!-- Confidence -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginStart="8dp"
+                android:gravity="center_vertical">
+
+                <ProgressBar
+                    android:id="@+id/confidence_progress_bar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="24dp"
+                    android:layout_height="4dp"
+                    android:max="100"
+                    android:progress="85"
+                    android:progressTint="@color/confidence_high" />
+
+                <TextView
+                    android:id="@+id/confidence_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:textSize="10sp"
+                    android:textColor="@color/text_disabled"
+                    tools:text="85%" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

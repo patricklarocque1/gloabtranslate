@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/mainFragment">
+
+    <!-- Main Fragment (Home) -->
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.example.gloabtranslate.MainFragment"
+        android:label="Global Translate"
+        tools:layout="@layout/fragment_main" />
+
+    <!-- Transcription Fragment -->
+    <fragment
+        android:id="@+id/transcriptionFragment"
+        android:name="com.example.gloabtranslate.ui.transcription.TranscriptionFragment"
+        android:label="Real-time Transcription"
+        tools:layout="@layout/fragment_transcription" />
+
+    <!-- Translation Result Fragment -->
+    <fragment
+        android:id="@+id/translationResultFragment"
+        android:name="com.example.gloabtranslate.ui.translation.TranslationResultFragment"
+        android:label="Translation Result"
+        tools:layout="@layout/fragment_translation_result">
+        
+        <argument
+            android:name="translationResult"
+            app:argType="com.example.gloabtranslate.core.data.models.TranslationResult" />
+        <argument
+            android:name="sourceLanguage"
+            app:argType="string" />
+        <argument
+            android:name="targetLanguage"
+            app:argType="string" />
+    </fragment>
+
+    <!-- Language Selection Fragment -->
+    <fragment
+        android:id="@+id/languageSelectionFragment"
+        android:name="com.example.gloabtranslate.ui.language.LanguageSelectionFragment"
+        android:label="Select Language"
+        tools:layout="@layout/fragment_language_selection">
+        
+        <argument
+            android:name="selectionType"
+            app:argType="string" />
+        <argument
+            android:name="currentLanguage"
+            app:argType="string"
+            android:defaultValue="" />
+        <argument
+            android:name="excludedLanguages"
+            app:argType="string[]"
+            android:defaultValue="@null" />
+        <argument
+            android:name="allowAutoDetect"
+            app:argType="boolean"
+            android:defaultValue="true" />
+    </fragment>
+
+    <!-- Translation History Fragment -->
+    <fragment
+        android:id="@+id/translationHistoryFragment"
+        android:name="com.example.gloabtranslate.ui.history.TranslationHistoryFragment"
+        android:label="Translation History"
+        tools:layout="@layout/fragment_translation_history" />
+
+    <!-- Settings Activity -->
+    <activity
+        android:id="@+id/settingsActivity"
+        android:name="com.example.gloabtranslate.ui.settings.SettingsActivity"
+        android:label="Settings"
+        tools:layout="@layout/activity_settings" />
+
+</navigation>

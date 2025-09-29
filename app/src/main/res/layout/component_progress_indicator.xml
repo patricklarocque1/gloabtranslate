@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/progress_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center"
+    android:background="@drawable/background_progress_indicator"
+    android:elevation="8dp">
+
+    <!-- Progress Icon/Image -->
+    <ImageView
+        android:id="@+id/progress_image_view"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/ic_processing"
+        android:contentDescription="@string/progress_indicator"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:src="@drawable/ic_processing" />
+
+    <!-- Linear Progress Bar -->
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="8dp"
+        android:layout_marginBottom="8dp"
+        android:max="100"
+        android:progress="45"
+        android:progressTint="@color/primary"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <!-- Circular Progress View -->
+    <com.example.gloabtranslate.ui.components.ProgressIndicator.CircularProgressView
+        android:id="@+id/circular_progress_view"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <!-- Indeterminate Progress View -->
+    <com.example.gloabtranslate.ui.components.ProgressIndicator.IndeterminateProgressView
+        android:id="@+id/indeterminate_progress_view"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <!-- Progress Text -->
+    <TextView
+        android:id="@+id/progress_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:textSize="16sp"
+        android:textColor="@color/text_primary"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:text="Processing..." />
+
+    <!-- Progress Sub Text -->
+    <TextView
+        android:id="@+id/progress_sub_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textSize="14sp"
+        android:textColor="@color/text_secondary"
+        android:gravity="center"
+        android:maxLines="3"
+        android:ellipsize="end"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:text="Please wait while we process your request" />
+
+    <!-- Progress Percentage -->
+    <TextView
+        android:id="@+id/progress_percentage_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:textSize="12sp"
+        android:textColor="@color/text_secondary"
+        android:gravity="center"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:text="45%" />
+
+    <!-- Cancel Button -->
+    <TextView
+        android:id="@+id/progress_cancel_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="12dp"
+        android:text="@string/cancel"
+        android:textSize="14sp"
+        android:textColor="@color/primary"
+        android:background="@drawable/background_button_secondary"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="@string/cancel_progress"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+</LinearLayout>

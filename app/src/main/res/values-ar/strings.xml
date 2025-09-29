@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Translation Result Fragment -->
+    <string name="source_language">اللغة المصدر</string>
+    <string name="target_language">اللغة الهدف</string>
+    <string name="original_text_placeholder">النص الأصلي سيظهر هنا</string>
+    <string name="translated_text_placeholder">الترجمة ستظهر هنا</string>
+    <string name="translation_arrow">سهم الترجمة</string>
+    <string name="confidence_percentage">%1$d%%</string>
+    <string name="translation_successful">نجح</string>
+    <string name="translation_failed">فشل</string>
+    <string name="translated_time_ago">تمت الترجمة %1$s</string>
+    <string name="translation_mode">وضع الترجمة</string>
+    <string name="on_device_translation">على الجهاز</string>
+    <string name="cloud_translation">السحابة</string>
+    
+    <!-- Action Buttons -->
+    <string name="copy_translation">نسخ الترجمة</string>
+    <string name="share_translation">مشاركة الترجمة</string>
+    <string name="add_to_favorites">إضافة للمفضلة</string>
+    <string name="remove_from_favorites">إزالة من المفضلة</string>
+    <string name="play_audio">تشغيل الصوت</string>
+    <string name="view_history">عرض السجل</string>
+    <string name="translation_settings">إعدادات الترجمة</string>
+    
+    <!-- Additional Features -->
+    <string name="alternative_translations">ترجمات بديلة</string>
+    <string name="alternative_translation_placeholder">بديل</string>
+    <string name="show_more">عرض المزيد</string>
+    <string name="show_less">عرض أقل</string>
+    <string name="edit_translation">تحرير</string>
+    <string name="report_issue">إبلاغ</string>
+    
+    <!-- Feedback Messages -->
+    <string name="text_copied">تم نسخ النص إلى الحافظة</string>
+    <string name="just_now">الآن</string>
+    <string name="minutes_ago">منذ %1$d دقيقة</string>
+    <string name="hours_ago">منذ %1$d ساعة</string>
+    <string name="days_ago">منذ %1$d يوم</string>
+    
+    <!-- Language Selection -->
+    <string name="select_language">اختيار اللغة</string>
+    <string name="choose_language_for_translation">اختر لغة للترجمة</string>
+    <string name="close_language_selection">إغلاق اختيار اللغة</string>
+    <string name="search_languages">البحث عن اللغات</string>
+    <string name="search_source_languages">البحث عن اللغات المصدر</string>
+    <string name="search_target_languages">البحث عن اللغات الهدف</string>
+    <string name="search_languages_hint">البحث عن اللغات بالاسم أو الرمز</string>
+    <string name="clear_search">مسح البحث</string>
+    <string name="filter_by">تصفية حسب</string>
+    <string name="all_languages">الكل</string>
+    <string name="recent_languages">الأحدث</string>
+    <string name="favorite_languages">المفضلة</string>
+    <string name="on_device_languages">على الجهاز</string>
+    <string name="cloud_languages">السحابة</string>
+    <string name="no_languages_found">لم يتم العثور على لغات</string>
+    <string name="no_languages_found_search">لم يتم العثور على لغات لـ "%1$s"</string>
+    <string name="no_recent_languages">لا توجد لغات حديثة</string>
+    <string name="no_favorite_languages">لا توجد لغات مفضلة</string>
+    <string name="no_on_device_languages">لا توجد لغات على الجهاز</string>
+    <string name="no_cloud_languages">لا توجد لغات في السحابة</string>
+    <string name="no_languages_available">لا توجد لغات متاحة</string>
+    <string name="error_loading_languages">خطأ في تحميل اللغات</string>
+    
+    <!-- Settings -->
+    <string name="settings">الإعدادات</string>
+    <string name="search_settings">البحث في الإعدادات</string>
+    <string name="search_settings_hint">البحث في الإعدادات بالاسم أو الوصف</string>
+    <string name="all_settings">الكل</string>
+    <string name="general_settings">عام</string>
+    <string name="audio_settings">الصوت</string>
+    <string name="ui_settings">واجهة المستخدم</string>
+    <string name="privacy_settings">الخصوصية</string>
+    <string name="advanced_settings">متقدم</string>
+    <string name="no_settings_found">لم يتم العثور على إعدادات</string>
+    <string name="no_settings_found_search">لم يتم العثور على إعدادات لـ "%1$s"</string>
+    <string name="error_loading_settings">خطأ في تحميل الإعدادات</string>
+    <string name="setting_updated">تم تحديث الإعداد</string>
+    <string name="setting_update_failed">فشل في تحديث الإعداد</string>
+    
+    <!-- General Settings -->
+    <string name="theme">المظهر</string>
+    <string name="theme_description">اختر المظهر المفضل لديك</string>
+    <string name="system_theme">النظام</string>
+    <string name="light_theme">فاتح</string>
+    <string name="dark_theme">داكن</string>
+    <string name="app_language">لغة التطبيق</string>
+    <string name="app_language_description">اختر اللغة لواجهة التطبيق</string>
+    <string name="english">الإنجليزية</string>
+    <string name="spanish">الإسبانية</string>
+    <string name="french">الفرنسية</string>
+    <string name="german">الألمانية</string>
+    <string name="italian">الإيطالية</string>
+    <string name="portuguese">البرتغالية</string>
+    <string name="russian">الروسية</string>
+    <string name="chinese">الصينية</string>
+    <string name="japanese">اليابانية</string>
+    <string name="korean">الكورية</string>
+    <string name="arabic">العربية</string>
+    <string name="hindi">الهندية</string>
+    <string name="auto_detect">الكشف التلقائي</string>
+    
+    <!-- App Name -->
+    <string name="app_name">المترجم العالمي</string>
+</resources>

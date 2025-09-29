@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <!-- ProgressIndicator Attributes -->
+    <declare-styleable name="ProgressIndicator">
+        <!-- Progress type -->
+        <attr name="progressType" format="enum">
+            <enum name="linear" value="0" />
+            <enum name="circular" value="1" />
+            <enum name="indeterminate" value="2" />
+            <enum name="pulse" value="3" />
+            <enum name="custom" value="4" />
+        </attr>
+        
+        <!-- Progress values -->
+        <attr name="progress" format="integer" />
+        <attr name="max" format="integer" />
+        <attr name="indeterminate" format="boolean" />
+        
+        <!-- Progress text -->
+        <attr name="progressText" format="string" />
+        <attr name="progressSubText" format="string" />
+        
+        <!-- Progress icon -->
+        <attr name="progressIcon" format="reference" />
+        
+        <!-- Cancellable -->
+        <attr name="cancellable" format="boolean" />
+        
+        <!-- Colors -->
+        <attr name="progressColor" format="color" />
+        <attr name="progressBackgroundColor" format="color" />
+        <attr name="textColor" format="color" />
+        <attr name="subTextColor" format="color" />
+        
+        <!-- Sizes -->
+        <attr name="progressSize" format="dimension" />
+        <attr name="textSize" format="dimension" />
+        <attr name="subTextSize" format="dimension" />
+        
+        <!-- Animation -->
+        <attr name="animationDuration" format="integer" />
+        <attr name="enableAnimations" format="boolean" />
+    </declare-styleable>
+    
+</resources>

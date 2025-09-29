@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="chip_background_selected">@color/primary</color>
+    <color name="chip_background_unselected">@color/surface_variant</color>
+    <color name="chip_text_selected">@color/on_primary</color>
+    <color name="chip_text_unselected">@color/on_surface_variant</color>
+</resources>

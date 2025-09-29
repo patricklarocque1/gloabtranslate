@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Store Compliance Information -->
+    
+    <!-- Content Rating -->
+    <string name="content_rating">Everyone</string>
+    <string name="content_rating_description">This app is suitable for all ages. No inappropriate content, violence, or mature themes.</string>
+    
+    <!-- Target Audience -->
+    <string name="target_audience">All ages</string>
+    <string name="target_audience_description">Designed for users of all ages who need translation services.</string>
+    
+    <!-- Permissions Justification -->
+    <string name="permission_microphone_title">Microphone Access</string>
+    <string name="permission_microphone_description">Required for voice translation and speech recognition features.</string>
+    
+    <string name="permission_camera_title">Camera Access</string>
+    <string name="permission_camera_description">Required for camera translation feature to scan text from images.</string>
+    
+    <string name="permission_internet_title">Internet Access</string>
+    <string name="permission_internet_description">Required for online translation services and app updates.</string>
+    
+    <string name="permission_storage_title">Storage Access</string>
+    <string name="permission_storage_description">Required for saving translation history and offline language packs.</string>
+    
+    <!-- Data Safety -->
+    <string name="data_safety_collection">We collect minimal data necessary for translation services</string>
+    <string name="data_safety_sharing">We do not sell or share personal data with third parties</string>
+    <string name="data_safety_security">All data is encrypted and stored securely</string>
+    <string name="data_safety_deletion">Users can delete their data at any time</string>
+    
+    <!-- App Store Guidelines Compliance -->
+    <string name="guidelines_functionality">App provides clear value and functionality as described</string>
+    <string name="guidelines_metadata">App metadata accurately describes functionality and content</string>
+    <string name="guidelines_permissions">All permissions are necessary and clearly explained</string>
+    <string name="guidelines_privacy">Privacy policy is clear and accessible</string>
+    <string name="guidelines_security">App implements appropriate security measures</string>
+    <string name="guidelines_performance">App performs well and doesn\'t crash</string>
+    <string name="guidelines_design">App follows platform design guidelines</string>
+    <string name="guidelines_accessibility">App is accessible to users with disabilities</string>
+    
+    <!-- Age Rating Information -->
+    <string name="age_rating_0">No inappropriate content</string>
+    <string name="age_rating_1">No violence or scary content</string>
+    <string name="age_rating_2">No sexual content or nudity</string>
+    <string name="age_rating_3">No profanity or crude humor</string>
+    <string name="age_rating_4">No alcohol, tobacco, or drug use</string>
+    <string name="age_rating_5">No simulated gambling</string>
+    <string name="age_rating_6">No user-generated content</string>
+    <string name="age_rating_7">No location sharing</string>
+    <string name="age_rating_8">No social features</string>
+    <string name="age_rating_9">No in-app purchases</string>
+    <string name="age_rating_10">No advertising</string>
+    
+    <!-- App Store Optimization -->
+    <string name="aso_keywords">translation,language,voice,offline,travel,communication,ai,multilingual,real-time,camera,conversation,privacy,local</string>
+    <string name="aso_category">Tools</string>
+    <string name="aso_subcategory">Productivity</string>
+    
+    <!-- Feature Descriptions for Store -->
+    <string name="store_feature_1">Real-time text translation in 100+ languages</string>
+    <string name="store_feature_2">Voice recognition and text-to-speech</string>
+    <string name="store_feature_3">Offline translation capabilities</string>
+    <string name="store_feature_4">Camera translation for signs and documents</string>
+    <string name="store_feature_5">Conversation mode for two-way communication</string>
+    <string name="store_feature_6">History and favorites management</string>
+    <string name="store_feature_7">Dark mode and customizable interface</string>
+    <string name="store_feature_8">Privacy-focused with local processing</string>
+    
+    <!-- Screenshots for Store -->
+    <string name="store_screenshot_1">Main translation interface</string>
+    <string name="store_screenshot_2">Voice translation feature</string>
+    <string name="store_screenshot_3">Camera translation scanning</string>
+    <string name="store_screenshot_4">Language selection screen</string>
+    <string name="store_screenshot_5">Settings and preferences</string>
+    <string name="store_screenshot_6">Translation history</string>
+    <string name="store_screenshot_7">Conversation mode</string>
+    <string name="store_screenshot_8">Offline translation options</string>
+    
+    <!-- Promotional Text -->
+    <string name="store_promotional_text">Break down language barriers with Global Translate! Real-time translation, voice recognition, and offline support in one powerful app. Perfect for travelers, students, and professionals.</string>
+    
+    <!-- What\'s New -->
+    <string name="store_whats_new">• New voice translation features
+• Improved offline translation accuracy
+• Enhanced camera translation
+• Better conversation mode
+• Updated language support
+• Performance improvements
+• Bug fixes and stability enhancements</string>
+    
+    <!-- App Store Compliance Checklist -->
+    <string name="compliance_checklist">✓ Functionality matches description
+✓ Metadata is accurate and complete
+✓ Permissions are necessary and explained
+✓ Privacy policy is clear and accessible
+✓ App performs well and doesn\'t crash
+✓ Follows platform design guidelines
+✓ Accessible to users with disabilities
+✓ Appropriate content rating
+✓ No inappropriate content
+✓ No misleading information
+✓ No copyright violations
+✓ No spam or low-quality content
+✓ No malicious behavior
+✓ No excessive permissions
+✓ No data collection without consent</string>
+</resources>

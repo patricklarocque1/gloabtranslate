@@ -1,0 +1,77 @@
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build/
+/captures/
+.externalNativeBuild/
+.cxx/
+local.properties
+
+# Module build directories
+**/build/
+
+# Keystores (ignore all; add specific debug keystore back with ! pattern if desired)
+*.jks
+*.keystore
+!app/debug-keystore.jks
+
+# Signing / secrets
+signing.properties
+keystore.properties
+**/google-services.json
+**/GoogleService-Info.plist
+
+# Kotlin/Java compiled
+*.class
+
+# Logs
+*.log
+
+# Generated schema / KSP / annotation processors
+**/schemas/**
+**/kspCaches/**
+
+# Benchmark / profiling outputs
+**/benchmarkData/
+**/baselineProfiles/
+
+# Local test reports
+**/reports/
+**/test-results/
+
+# APK / AAB outputs
+*.apk
+*.ap_
+*.aab
+
+# NDK / CMake
+obj/
+*.so
+
+# Lint/intermediate
+lint/intermediates/
+lint/generated/
+
+# Temporary files
+*.tmp
+*.temp
+~$*
+
+# Jetpack Compose metrics (opt-in to track if needed)
+compose-metrics/
+compose-reports/
+
+# IntelliJ project files
+*.ipr
+*.iws
+
+# Fastlane / metadata
+.fastlane/
+metadata/
+
+# CI / run configs
+.run/
+
+# End of .gitignore
