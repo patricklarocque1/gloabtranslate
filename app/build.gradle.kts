@@ -172,7 +172,7 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
     testImplementation(libs.kotlin.test.junit) // For kotlin.test assertions
-    testImplementation("io.mockk:mockk:1.13.8") // MockK for Kotlin testing
+    testImplementation("io.mockk:mockk:1.14.5") // MockK for Kotlin testing
 
     // AndroidTest dependencies (Instrumented tests)
     androidTestImplementation(libs.androidx.junit)
