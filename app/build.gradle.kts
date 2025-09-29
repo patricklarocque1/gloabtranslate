@@ -167,7 +167,7 @@ dependencies {
     // Test dependencies (Unit tests)
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core)
-    testImplementation("org.mockito:mockito-inline:4.5.1") // For final classes/methods
+    testImplementation("org.mockito:mockito-inline:5.2.0") // For final classes/methods
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
