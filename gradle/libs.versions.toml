@@ -44,7 +44,7 @@ kotlinx-serialization-json = "1.6.0"
 
 # Testing dependencies
 mockito = "5.8.0"
-mockito-kotlin = "5.3.1"
+mockito-kotlin = "6.0.0"
 test-rules = "1.6.1"
 test-runner = "1.6.2"
 robolectric = "4.16" # Added Robolectric version
