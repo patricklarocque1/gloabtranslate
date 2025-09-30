@@ -53,42 +53,51 @@ object CoreModule {
 
     @Provides
     @Singleton
-    fun provideTranslationRepository(): TranslationRepository {
+    fun provideTranslationRepository(context: Context, historyRepository: TranslationHistoryRepository): TranslationRepository {
         return object : TranslationRepository {
+            private val translationPipeline by lazy { com.example.gloabtranslate.nlp.TranslationPipeline(context) }
+            
             override suspend fun translateText(text: String, sourceLanguage: String, targetLanguage: String): com.example.gloabtranslate.core.data.models.TranslationResult {
-                // TODO: Implement actual translation logic
-                return com.example.gloabtranslate.core.data.models.TranslationResult(
-                    success = false,
-                    originalText = text,
-                    translatedText = "Translation not implemented yet",
-                    sourceLanguage = sourceLanguage,
-                    targetLanguage = targetLanguage,
-                    confidence = 0.0f,
-                    isPartial = false,
-                    isOnDevice = false,
-                    timestamp = System.currentTimeMillis(),
-                    error = "Translation service not implemented"
-                )
+                return try {
+                    translationPipeline.processText(text, sourceLanguage, targetLanguage)
+                } catch (e: Exception) {
+                    com.example.gloabtranslate.core.data.models.TranslationResult(
+                        success = false,
+                        originalText = text,
+                        translatedText = "",
+                        sourceLanguage = sourceLanguage,
+                        targetLanguage = targetLanguage,
+                        confidence = 0.0f,
+                        isPartial = false,
+                        isOnDevice = false,
+                        timestamp = System.currentTimeMillis(),
+                        error = "Translation error: ${e.message}"
+                    )
+                }
             }
             
             override suspend fun identifyLanguage(text: String): String? {
-                return null
+                return try {
+                    translationPipeline.detectLanguage(text)
+                } catch (e: Exception) {
+                    null
+                }
             }
             
             override suspend fun getSupportedLanguages(): List<String> {
-                return emptyList()
+                return translationPipeline.getSupportedLanguages()
             }
             
             override fun getTranslationHistory(): kotlinx.coroutines.flow.Flow<List<com.example.gloabtranslate.core.data.models.TranslationResult>> {
-                return kotlinx.coroutines.flow.flowOf(emptyList())
+                return historyRepository.translationHistory
             }
             
             override suspend fun saveTranslationResult(result: com.example.gloabtranslate.core.data.models.TranslationResult) {
-                // TODO: Implement save logic
+                historyRepository.addTranslation(result)
             }
             
             override suspend fun clearHistory() {
-                // TODO: Implement clear logic
+                historyRepository.clearHistory()
             }
         }
     }

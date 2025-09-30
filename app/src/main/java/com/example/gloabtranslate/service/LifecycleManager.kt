@@ -446,10 +446,15 @@ class LifecycleManager private constructor(private val context: Context) : Defau
     fun getServiceState(serviceName: String): ServiceState {
         return when {
             !registeredServices.containsKey(serviceName) -> ServiceState.UNKNOWN
-            boundServices.containsKey(serviceName) -> ServiceState.BOUND
+            boundServices.containsKey(serviceName) -> {
+                val boundInfo = boundServices[serviceName]
+                when {
+                    boundInfo?.isHealthy == false -> ServiceState.FAILED
+                    else -> ServiceState.BOUND
+                }
+            }
             isServiceRunning(serviceName) -> ServiceState.RUNNING
-            // TODO: Consider other states like STARTING, STOPPING, FAILED, RECOVERING
-            else -> ServiceState.REGISTERED // Default if not bound or running but registered
+            else -> ServiceState.REGISTERED
         }
     }
     

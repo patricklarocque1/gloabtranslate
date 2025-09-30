@@ -1,6 +1,6 @@
 [versions]
 # Android Gradle Plugin
-agp = "8.13.0"
+agp = "8.3.1"
 
 # Android SDK versions
 compileSdk = "36"

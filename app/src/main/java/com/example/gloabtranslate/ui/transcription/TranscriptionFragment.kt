@@ -306,7 +306,7 @@ class TranscriptionFragment : Fragment() {
                 true
             }
             R.id.action_settings -> {
-                // TODO: Hook up transcription settings screen when available
+                showTranscriptionSettings()
                 true
             }
             else -> false
@@ -452,6 +452,50 @@ class TranscriptionFragment : Fragment() {
         } else {
             Toast.makeText(requireContext(), getString(R.string.no_transcription_to_export), Toast.LENGTH_SHORT).show()
         }
+    }
+    
+    private fun showTranscriptionSettings() {
+        val settingsOptions = arrayOf(
+            "Audio Quality",
+            "Auto-save",
+            "Language Detection",
+            "Punctuation",
+            "Display Options"
+        )
+        
+        AlertDialog.Builder(requireContext())
+            .setTitle("Transcription Settings")
+            .setItems(settingsOptions) { _, which ->
+                when (which) {
+                    0 -> showAudioQualitySettings()
+                    1 -> toggleAutoSave()
+                    2 -> toggleLanguageDetection()
+                    3 -> togglePunctuation()
+                    4 -> showDisplayOptions()
+                }
+            }
+            .setNegativeButton("Close", null)
+            .show()
+    }
+    
+    private fun showAudioQualitySettings() {
+        Toast.makeText(requireContext(), "Audio quality settings", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun toggleAutoSave() {
+        Toast.makeText(requireContext(), "Auto-save toggled", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun toggleLanguageDetection() {
+        Toast.makeText(requireContext(), "Language detection toggled", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun togglePunctuation() {
+        Toast.makeText(requireContext(), "Punctuation toggled", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun showDisplayOptions() {
+        Toast.makeText(requireContext(), "Display options", Toast.LENGTH_SHORT).show()
     }
     
     private fun copyTranscription() {

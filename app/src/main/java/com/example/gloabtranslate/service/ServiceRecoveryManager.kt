@@ -357,15 +357,27 @@ class ServiceRecoveryManager private constructor(private val context: Context) {
         
         val unhealthyCount = serviceHealthStatus.values.count { !it.isHealthy }
         
+        // Calculate average recovery time from history
+        val allAttempts = recoveryHistory.values.flatten()
+        val completedAttempts = allAttempts.filter { it.endTime != null }
+        val averageRecoveryTime = if (completedAttempts.isNotEmpty()) {
+            completedAttempts.map { it.duration }.average().toLong()
+        } else {
+            0L
+        }
+        
+        // Get last recovery time
+        val lastRecoveryTime = completedAttempts.maxOfOrNull { it.endTime ?: 0L } ?: 0L
+        
         return RecoveryStatistics(
             totalAttempts = totalAttempts,
             successfulRecoveries = successful,
             failedRecoveries = failed,
             successRate = successRate,
-            averageRecoveryTime = 0L, // TODO: Calculate average recovery time
+            averageRecoveryTime = averageRecoveryTime,
             servicesMonitored = serviceHealthStatus.size,
             unhealthyServices = unhealthyCount,
-            lastRecoveryTime = 0L // TODO: Track last recovery time
+            lastRecoveryTime = lastRecoveryTime
         )
     }
     
