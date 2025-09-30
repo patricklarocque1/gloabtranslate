@@ -78,14 +78,17 @@ object CoreModule {
             
             override suspend fun identifyLanguage(text: String): String? {
                 return try {
-                    translationPipeline.detectLanguage(text)
+                    // Use the translation pipeline with "auto" source to detect language
+                    // The pipeline will detect the language as part of the translation process
+                    val result = translationPipeline.processText(text, "auto", "en", isPartial = false)
+                    if (result.success) result.sourceLanguage else null
                 } catch (e: Exception) {
                     null
                 }
             }
             
             override suspend fun getSupportedLanguages(): List<String> {
-                return translationPipeline.getSupportedLanguages()
+                return translationPipeline.getSupportedLanguages().map { it.code }
             }
             
             override fun getTranslationHistory(): kotlinx.coroutines.flow.Flow<List<com.example.gloabtranslate.core.data.models.TranslationResult>> {
