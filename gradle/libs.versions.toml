@@ -68,7 +68,7 @@ dagger = "2.57.1"
 ksp = "2.2.20-2.0.3"
 
 # Firebase (if needed)
-firebase-bom = "33.1.2"
+firebase-bom = "34.3.0"
 
 # App versioning
 versionCode = "1"
