@@ -5,6 +5,7 @@
     <!-- Permissions for speech recognition and live translation functionality -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Android 13+ runtime permission for notifications used by Foreground Service -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Android 14+ permission for foreground service with microphone type -->

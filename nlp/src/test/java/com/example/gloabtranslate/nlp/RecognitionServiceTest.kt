@@ -1,6 +1,8 @@
 package com.example.gloabtranslate.nlp
 
 import android.content.Context
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.android.gms.tasks.OnSuccessListener
 import com.google.mlkit.common.MlKitException
 import com.google.mlkit.nl.languageid.LanguageIdentification
 import com.google.mlkit.nl.languageid.LanguageIdentifier
@@ -10,7 +12,11 @@ import com.google.mlkit.nl.translate.TranslatorOptions
 import io.mockk.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.*
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -35,7 +41,28 @@ class RecognitionServiceTest {
     private lateinit var mockTranslator: Translator
     private lateinit var mockModelManager: ModelManager
     private lateinit var recognitionService: RecognitionService
-    private val testDispatcher = UnconfinedTestDispatcher()
+    private val testDispatcher = StandardTestDispatcher()
+
+    // Helper methods for Task API mocking
+    private fun <T> createSuccessTask(value: T): com.google.android.gms.tasks.Task<T> {
+        val task = mockk<com.google.android.gms.tasks.Task<T>>()
+        every { task.addOnSuccessListener(any<com.google.android.gms.tasks.OnSuccessListener<T>>()) } answers {
+            firstArg<com.google.android.gms.tasks.OnSuccessListener<T>>().onSuccess(value)
+            task
+        }
+        every { task.addOnFailureListener(any<com.google.android.gms.tasks.OnFailureListener>()) } returns task
+        return task
+    }
+
+    private fun <T> createFailureTask(exception: Exception): com.google.android.gms.tasks.Task<T> {
+        val task = mockk<com.google.android.gms.tasks.Task<T>>()
+        every { task.addOnFailureListener(any<com.google.android.gms.tasks.OnFailureListener>()) } answers {
+            firstArg<com.google.android.gms.tasks.OnFailureListener>().onFailure(exception)
+            task
+        }
+        every { task.addOnSuccessListener(any<com.google.android.gms.tasks.OnSuccessListener<T>>()) } returns task
+        return task
+    }
 
     @Before
     fun setUp() {
@@ -75,10 +102,11 @@ class RecognitionServiceTest {
         unmockkAll()
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `initialize should return success when on-device recognition is available`() = runTest(testDispatcher) {
+    fun `initialize should return success when on-device recognition is available`() = runTest {
         // Given
-        every { mockAvailabilityManager.determineRecognitionCapability() } returns 
+        coEvery { mockAvailabilityManager.determineRecognitionCapability() } returns 
             RecognizerAvailabilityManager.RecognitionCapability.ON_DEVICE_AVAILABLE
         every { mockAvailabilityManager.isOnDeviceRecognitionAvailable() } returns true
 
@@ -92,10 +120,11 @@ class RecognitionServiceTest {
         assertNull(result.error)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `initialize should return success when cloud-only recognition is available`() = runTest(testDispatcher) {
+    fun `initialize should return success when cloud-only recognition is available`() = runTest {
         // Given
-        every { mockAvailabilityManager.determineRecognitionCapability() } returns 
+        coEvery { mockAvailabilityManager.determineRecognitionCapability() } returns 
             RecognizerAvailabilityManager.RecognitionCapability.CLOUD_ONLY
         every { mockAvailabilityManager.isOnDeviceRecognitionAvailable() } returns false
 
@@ -109,10 +138,11 @@ class RecognitionServiceTest {
         assertNull(result.error)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `initialize should return failure when recognition is unavailable`() = runTest(testDispatcher) {
+    fun `initialize should return failure when recognition is unavailable`() = runTest {
         // Given
-        every { mockAvailabilityManager.determineRecognitionCapability() } returns 
+        coEvery { mockAvailabilityManager.determineRecognitionCapability() } returns 
             RecognizerAvailabilityManager.RecognitionCapability.UNAVAILABLE
         every { mockAvailabilityManager.getCapabilityMessage() } returns "Google Play Services not available"
 
@@ -125,10 +155,11 @@ class RecognitionServiceTest {
         assertNull(result.text)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `initialize should return failure when still checking availability`() = runTest(testDispatcher) {
+    fun `initialize should return failure when still checking availability`() = runTest {
         // Given
-        every { mockAvailabilityManager.determineRecognitionCapability() } returns 
+        coEvery { mockAvailabilityManager.determineRecognitionCapability() } returns 
             RecognizerAvailabilityManager.RecognitionCapability.CHECKING
 
         // When
@@ -140,10 +171,11 @@ class RecognitionServiceTest {
         assertNull(result.text)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `initialize should handle exceptions gracefully`() = runTest(testDispatcher) {
+    fun `initialize should handle exceptions gracefully`() = runTest {
         // Given
-        every { mockAvailabilityManager.determineRecognitionCapability() } throws 
+        coEvery { mockAvailabilityManager.determineRecognitionCapability() } throws 
             RuntimeException("Test exception")
 
         // When
@@ -155,19 +187,14 @@ class RecognitionServiceTest {
         assertNull(result.text)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `identifyLanguage should return success with identified language`() = runTest(testDispatcher) {
+    fun `identifyLanguage should return success with identified language`() = runTest {
         // Given
         val testText = "Hello world"
         val expectedLanguage = "en"
         
-        every { mockLanguageIdentifier.identifyLanguage(testText) } returns mockk {
-            every { addOnSuccessListener(any()) } answers {
-                firstArg<(String) -> Unit>().invoke(expectedLanguage)
-                this
-            }
-            every { addOnFailureListener(any()) } returns this
-        }
+        every { mockLanguageIdentifier.identifyLanguage(testText) } returns createSuccessTask(expectedLanguage)
 
         // When
         val result = recognitionService.identifyLanguage(testText)
@@ -179,8 +206,9 @@ class RecognitionServiceTest {
         assertNull(result.error)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `identifyLanguage should return failure when language identifier is null`() = runTest(testDispatcher) {
+    fun `identifyLanguage should return failure when language identifier is null`() = runTest {
         // Given
         val testText = "Hello world"
 
@@ -193,15 +221,13 @@ class RecognitionServiceTest {
         assertNull(result.text)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `identifyLanguage should handle timeout`() = runTest(testDispatcher) {
+    fun `identifyLanguage should handle timeout`() = runTest {
         // Given
         val testText = "Hello world"
         
-        every { mockLanguageIdentifier.identifyLanguage(testText) } returns mockk {
-            every { addOnSuccessListener(any()) } returns this
-            every { addOnFailureListener(any()) } returns this
-        }
+        every { mockLanguageIdentifier.identifyLanguage(testText) } returns createFailureTask(RuntimeException("Timeout"))
 
         // When
         val result = recognitionService.identifyLanguage(testText)
@@ -211,21 +237,16 @@ class RecognitionServiceTest {
         assertEquals("Language identification timed out", result.error)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `translateText should return success with translated text`() = runTest(testDispatcher) {
+    fun `translateText should return success with translated text`() = runTest {
         // Given
         val sourceText = "Hello"
         val sourceLanguage = "en"
         val targetLanguage = "es"
         val expectedTranslation = "Hola"
         
-        every { mockTranslator.translate(sourceText) } returns mockk {
-            every { addOnSuccessListener(any()) } answers {
-                firstArg<(String) -> Unit>().invoke(expectedTranslation)
-                this
-            }
-            every { addOnFailureListener(any()) } returns this
-        }
+        every { mockTranslator.translate(sourceText) } returns createSuccessTask(expectedTranslation)
 
         // When
         val result = recognitionService.translateText(sourceText, sourceLanguage, targetLanguage)
@@ -239,17 +260,15 @@ class RecognitionServiceTest {
         assertNull(result.error)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `translateText should handle timeout`() = runTest(testDispatcher) {
+    fun `translateText should handle timeout`() = runTest {
         // Given
         val sourceText = "Hello"
         val sourceLanguage = "en"
         val targetLanguage = "es"
         
-        every { mockTranslator.translate(sourceText) } returns mockk {
-            every { addOnSuccessListener(any()) } returns this
-            every { addOnFailureListener(any()) } returns this
-        }
+        every { mockTranslator.translate(sourceText) } returns createFailureTask(RuntimeException("Timeout"))
 
         // When
         val result = recognitionService.translateText(sourceText, sourceLanguage, targetLanguage)
@@ -259,8 +278,9 @@ class RecognitionServiceTest {
         assertEquals("Translation timed out", result.error)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `translateText should handle exceptions`() = runTest(testDispatcher) {
+    fun `translateText should handle exceptions`() = runTest {
         // Given
         val sourceText = "Hello"
         val sourceLanguage = "en"
@@ -276,8 +296,9 @@ class RecognitionServiceTest {
         assertTrue(result.error?.contains("Translation failed") == true)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `getCapabilityStatus should return status from availability manager`() = runTest(testDispatcher) {
+    fun `getCapabilityStatus should return status from availability manager`() = runTest {
         // Given
         val expectedStatus = "On-device translation available"
         every { mockAvailabilityManager.getCapabilityMessage() } returns expectedStatus
@@ -289,8 +310,9 @@ class RecognitionServiceTest {
         assertEquals(expectedStatus, status)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `getRecommendedAction should return action from availability manager`() = runTest(testDispatcher) {
+    fun `getRecommendedAction should return action from availability manager`() = runTest {
         // Given
         val expectedAction = "You can use translation offline"
         every { mockAvailabilityManager.getRecommendedAction() } returns expectedAction
@@ -302,8 +324,9 @@ class RecognitionServiceTest {
         assertEquals(expectedAction, action)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `isOnDeviceAvailable should return status from availability manager`() = runTest(testDispatcher) {
+    fun `isOnDeviceAvailable should return status from availability manager`() = runTest {
         // Given
         every { mockAvailabilityManager.isOnDeviceRecognitionAvailable() } returns true
 
@@ -314,8 +337,9 @@ class RecognitionServiceTest {
         assertTrue(isAvailable)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `isCloudAvailable should return status from availability manager`() = runTest(testDispatcher) {
+    fun `isCloudAvailable should return status from availability manager`() = runTest {
         // Given
         every { mockAvailabilityManager.isCloudRecognitionAvailable() } returns true
 
@@ -326,8 +350,9 @@ class RecognitionServiceTest {
         assertTrue(isAvailable)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `cleanup should close all active translators`() = runTest(testDispatcher) {
+    fun `cleanup should close all active translators`() = runTest {
         // Given
         val mockTranslator1 = mockk<Translator>(relaxed = true)
         val mockTranslator2 = mockk<Translator>(relaxed = true)
