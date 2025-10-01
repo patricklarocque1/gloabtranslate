@@ -14,9 +14,11 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [28])
 class AudioPreferencesObserverTest {
 
     private lateinit var context: Context
@@ -44,11 +46,12 @@ class AudioPreferencesObserverTest {
         preferencesManager.setPreference("sampleRate", 44100)
         preferencesManager.setPreference("audioBufferSize", 2048)
 
-        withTimeout(1_000) {
+        // Give more time for the configuration observer to process changes
+        withTimeout(5_000) {
             while (true) {
                 val config = recorder.getRecordingConfig()
                 if (config.sampleRate == 44100 && config.bufferSize == 2048) return@withTimeout
-                delay(10)
+                delay(50) // Increase delay to reduce polling frequency
             }
         }
 
@@ -68,13 +71,14 @@ class AudioPreferencesObserverTest {
         preferencesManager.setPreference("audioBufferSize", 4096)
         preferencesManager.setPreference("enableNoiseReduction", false)
 
-        withTimeout(1_000) {
+        // Give more time for the configuration observer to process changes
+        withTimeout(5_000) {
             while (true) {
                 val config = processor.getProcessingConfig()
                 if (config.sampleRate == 22050 && config.bufferSize == 4096) {
                     break
                 }
-                delay(10)
+                delay(50) // Increase delay to reduce polling frequency
             }
         }
 

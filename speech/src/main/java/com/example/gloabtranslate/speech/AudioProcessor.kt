@@ -465,7 +465,7 @@ class AudioProcessor(
         }
         
         return VadResult(
-            isVoice = isVoiceDetected,
+            isVoice = isVoice,  // Return immediate voice detection, not persistent state
             confidence = confidence,
             energy = energy,
             silenceFrames = silenceCounter
@@ -654,6 +654,7 @@ class AudioProcessor(
         audioBuffer.clear()
         processedBuffer.clear()
         noiseProfile.clear()
+        platform.cleanup()
     }
 
     /**
