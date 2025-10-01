@@ -18,6 +18,7 @@ import android.os.IBinder
 import android.os.Parcelable
 import android.os.Parcel
 import android.util.Log
+import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.example.gloabtranslate.core.data.config.ConfigurationManager
@@ -176,8 +177,17 @@ class AudioRecorder(private val context: Context) {
     /**
      * Initializes the audio recorder with default configuration
      */
+    @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     suspend fun initialize(config: RecordingConfig = RecordingConfig()): RecordingResult = withContext(Dispatchers.IO) {
         try {
+            // Check for RECORD_AUDIO permission before initializing AudioRecord
+            if (!hasRecordAudioPermission()) {
+                return@withContext RecordingResult(
+                    success = false,
+                    error = "RECORD_AUDIO permission not granted"
+                )
+            }
+
             val preferences = configurationManager.currentAudioConfig()
             activePreferencesConfig = preferences
             configurationObserver.updateCurrentConfig(preferences)
@@ -223,6 +233,7 @@ class AudioRecorder(private val context: Context) {
 
             val bufferSize = maxOf(minBufferSize, resolvedConfig.bufferSize)
 
+            @Suppress("MissingPermission")
             audioRecord = AudioRecord(
                 resolvedConfig.audioSource,
                 resolvedConfig.sampleRate,
@@ -763,6 +774,7 @@ class AudioRecordingService : Service() {
         // Initialize and start recording
         recordingJob = CoroutineScope(Dispatchers.IO).launch {
             try {
+                @Suppress("MissingPermission")
                 val initResult = audioRecorder?.initialize(config)
                 if (initResult?.success == true) {
                     isServiceRunning = true
