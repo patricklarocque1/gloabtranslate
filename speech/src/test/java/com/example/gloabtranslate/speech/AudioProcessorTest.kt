@@ -199,7 +199,7 @@ private class FakeAudioProcessorPlatform : AudioProcessorPlatform {
             enableNoiseReduction = true,
             enableVoiceRecognition = true,
             enableAudioRecording = true,
-            audioQuality = PreferencesAudioConfig.AudioQuality.HIGH,
+            audioQuality = "HIGH",
             enableEchoCancellation = false,
             enableContinuousRecording = true
         )

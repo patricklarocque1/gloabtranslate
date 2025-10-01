@@ -3,6 +3,7 @@ package com.example.gloabtranslate.nlp
 import android.content.Context
 import com.google.mlkit.common.MlKitException
 import com.google.mlkit.nl.languageid.LanguageIdentification
+import com.google.mlkit.nl.languageid.LanguageIdentifier
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.Translator
 import com.google.mlkit.nl.translate.TranslatorOptions
@@ -14,37 +15,39 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mock
-import org.mockito.junit.MockitoJUnitRunner
+import org.robolectric.RobolectricTestRunner
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@RunWith(MockitoJUnitRunner::class)
+@RunWith(RobolectricTestRunner::class)
 class RecognitionServiceTest {
 
-    @Mock
     private lateinit var mockContext: Context
-
-    @Mock
     private lateinit var mockAvailabilityManager: RecognizerAvailabilityManager
-
-    @Mock
-    private lateinit var mockLanguageIdentifier: LanguageIdentification
-
-    @Mock
+    private lateinit var mockLanguageIdentifier: LanguageIdentifier
     private lateinit var mockTranslator: Translator
-
     private lateinit var mockModelManager: ModelManager
-
     private lateinit var recognitionService: RecognitionService
     private val testDispatcher = UnconfinedTestDispatcher()
 
     @Before
     fun setUp() {
+        MockKAnnotations.init(this, relaxUnitFun = true)
         Dispatchers.setMain(testDispatcher)
+        
+        // Create mocks
+        mockContext = mockk(relaxed = true)
+        mockAvailabilityManager = mockk(relaxed = true)
+        mockLanguageIdentifier = mockk(relaxed = true)
+        mockTranslator = mockk(relaxed = true)
+        mockModelManager = mockk(relaxed = true)
         
         // Mock static methods
         mockkStatic(LanguageIdentification::class)
@@ -73,7 +76,7 @@ class RecognitionServiceTest {
     }
 
     @Test
-    fun `initialize should return success when on-device recognition is available`() = runTest {
+    fun `initialize should return success when on-device recognition is available`() = runTest(testDispatcher) {
         // Given
         every { mockAvailabilityManager.determineRecognitionCapability() } returns 
             RecognizerAvailabilityManager.RecognitionCapability.ON_DEVICE_AVAILABLE
@@ -90,7 +93,7 @@ class RecognitionServiceTest {
     }
 
     @Test
-    fun `initialize should return success when cloud-only recognition is available`() = runTest {
+    fun `initialize should return success when cloud-only recognition is available`() = runTest(testDispatcher) {
         // Given
         every { mockAvailabilityManager.determineRecognitionCapability() } returns 
             RecognizerAvailabilityManager.RecognitionCapability.CLOUD_ONLY
@@ -107,7 +110,7 @@ class RecognitionServiceTest {
     }
 
     @Test
-    fun `initialize should return failure when recognition is unavailable`() = runTest {
+    fun `initialize should return failure when recognition is unavailable`() = runTest(testDispatcher) {
         // Given
         every { mockAvailabilityManager.determineRecognitionCapability() } returns 
             RecognizerAvailabilityManager.RecognitionCapability.UNAVAILABLE
@@ -123,7 +126,7 @@ class RecognitionServiceTest {
     }
 
     @Test
-    fun `initialize should return failure when still checking availability`() = runTest {
+    fun `initialize should return failure when still checking availability`() = runTest(testDispatcher) {
         // Given
         every { mockAvailabilityManager.determineRecognitionCapability() } returns 
             RecognizerAvailabilityManager.RecognitionCapability.CHECKING
@@ -138,7 +141,7 @@ class RecognitionServiceTest {
     }
 
     @Test
-    fun `initialize should handle exceptions gracefully`() = runTest {
+    fun `initialize should handle exceptions gracefully`() = runTest(testDispatcher) {
         // Given
         every { mockAvailabilityManager.determineRecognitionCapability() } throws 
             RuntimeException("Test exception")
@@ -153,7 +156,7 @@ class RecognitionServiceTest {
     }
 
     @Test
-    fun `identifyLanguage should return success with identified language`() = runTest {
+    fun `identifyLanguage should return success with identified language`() = runTest(testDispatcher) {
         // Given
         val testText = "Hello world"
         val expectedLanguage = "en"
@@ -177,7 +180,7 @@ class RecognitionServiceTest {
     }
 
     @Test
-    fun `identifyLanguage should return failure when language identifier is null`() = runTest {
+    fun `identifyLanguage should return failure when language identifier is null`() = runTest(testDispatcher) {
         // Given
         val testText = "Hello world"
 
@@ -191,7 +194,7 @@ class RecognitionServiceTest {
     }
 
     @Test
-    fun `identifyLanguage should handle timeout`() = runTest {
+    fun `identifyLanguage should handle timeout`() = runTest(testDispatcher) {
         // Given
         val testText = "Hello world"
         
@@ -209,7 +212,7 @@ class RecognitionServiceTest {
     }
 
     @Test
-    fun `translateText should return success with translated text`() = runTest {
+    fun `translateText should return success with translated text`() = runTest(testDispatcher) {
         // Given
         val sourceText = "Hello"
         val sourceLanguage = "en"
@@ -237,7 +240,7 @@ class RecognitionServiceTest {
     }
 
     @Test
-    fun `translateText should handle timeout`() = runTest {
+    fun `translateText should handle timeout`() = runTest(testDispatcher) {
         // Given
         val sourceText = "Hello"
         val sourceLanguage = "en"
@@ -257,7 +260,7 @@ class RecognitionServiceTest {
     }
 
     @Test
-    fun `translateText should handle exceptions`() = runTest {
+    fun `translateText should handle exceptions`() = runTest(testDispatcher) {
         // Given
         val sourceText = "Hello"
         val sourceLanguage = "en"
@@ -274,7 +277,7 @@ class RecognitionServiceTest {
     }
 
     @Test
-    fun `getCapabilityStatus should return status from availability manager`() = runTest {
+    fun `getCapabilityStatus should return status from availability manager`() = runTest(testDispatcher) {
         // Given
         val expectedStatus = "On-device translation available"
         every { mockAvailabilityManager.getCapabilityMessage() } returns expectedStatus
@@ -287,7 +290,7 @@ class RecognitionServiceTest {
     }
 
     @Test
-    fun `getRecommendedAction should return action from availability manager`() = runTest {
+    fun `getRecommendedAction should return action from availability manager`() = runTest(testDispatcher) {
         // Given
         val expectedAction = "You can use translation offline"
         every { mockAvailabilityManager.getRecommendedAction() } returns expectedAction
@@ -300,7 +303,7 @@ class RecognitionServiceTest {
     }
 
     @Test
-    fun `isOnDeviceAvailable should return status from availability manager`() = runTest {
+    fun `isOnDeviceAvailable should return status from availability manager`() = runTest(testDispatcher) {
         // Given
         every { mockAvailabilityManager.isOnDeviceRecognitionAvailable() } returns true
 
@@ -312,7 +315,7 @@ class RecognitionServiceTest {
     }
 
     @Test
-    fun `isCloudAvailable should return status from availability manager`() = runTest {
+    fun `isCloudAvailable should return status from availability manager`() = runTest(testDispatcher) {
         // Given
         every { mockAvailabilityManager.isCloudRecognitionAvailable() } returns true
 
@@ -324,7 +327,7 @@ class RecognitionServiceTest {
     }
 
     @Test
-    fun `cleanup should close all active translators`() = runTest {
+    fun `cleanup should close all active translators`() = runTest(testDispatcher) {
         // Given
         val mockTranslator1 = mockk<Translator>(relaxed = true)
         val mockTranslator2 = mockk<Translator>(relaxed = true)

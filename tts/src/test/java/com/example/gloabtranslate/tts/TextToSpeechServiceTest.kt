@@ -14,6 +14,7 @@ import java.util.Locale
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -58,8 +59,7 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        
 
         // When
         val result = ttsService.initialize(config)
@@ -105,8 +105,7 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        
 
         // When
         ttsService.initialize(config)
@@ -124,8 +123,7 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        
         every { mockTextToSpeech.speak(any(), any(), any(), any()) } returns TextToSpeech.SUCCESS
 
         // When
@@ -160,8 +158,7 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        
 
         // When
         ttsService.initialize(config)
@@ -180,8 +177,7 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        
 
         // When
         ttsService.initialize(config)
@@ -202,8 +198,7 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        
         every { mockTextToSpeech.speak(any(), any(), any(), any()) } throws 
             RuntimeException("Test exception")
 
@@ -223,8 +218,7 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        
         every { mockTextToSpeech.stop() } returns TextToSpeech.SUCCESS
 
         // When
@@ -251,8 +245,7 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        
         every { mockTextToSpeech.stop() } throws RuntimeException("Test exception")
 
         // When
@@ -271,8 +264,7 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        
 
         // When
         ttsService.initialize(config)
@@ -290,8 +282,7 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_NOT_SUPPORTED
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        
 
         // When
         ttsService.initialize(config)
@@ -321,8 +312,7 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        
 
         // When
         ttsService.initialize(config)
@@ -340,8 +330,7 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        
 
         // When
         ttsService.initialize(config)
@@ -361,8 +350,7 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        
 
         // When
         ttsService.initialize(config)
@@ -373,22 +361,20 @@ class TextToSpeechServiceTest {
     }
 
     @Test
-    fun `setVolume should return true when volume is valid`() = runTest {
+    fun `setVoice should return false when not initialized`() = runTest {
         // Given
-        val volume = 0.8f
-        val config = TextToSpeechService.TTSConfig()
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        val voice = TextToSpeechService.VoiceInfo(
+            name = "Test Voice",
+            locale = Locale.ENGLISH,
+            quality = TextToSpeechService.VoiceQuality.HIGH,
+            gender = TextToSpeechService.VoiceGender.NEUTRAL
+        )
 
         // When
-        ttsService.initialize(config)
-        val result = ttsService.setVolume(volume)
+        val result = ttsService.setVoice(voice)
 
         // Then
-        assertTrue(result)
+        assertFalse(result)
     }
 
     @Test
@@ -404,8 +390,7 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        
 
         // When
         ttsService.initialize(config)
@@ -422,8 +407,7 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        
 
         // When
         ttsService.initialize(config)
@@ -442,8 +426,7 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        
 
         // When
         ttsService.initialize(config)
@@ -462,8 +445,7 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        
 
         // When
         ttsService.initialize(config)
@@ -494,8 +476,7 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        
 
         // When
         ttsService.initialize(config)
@@ -542,10 +523,8 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
-        every { mockTextToSpeech.stop() } just Runs
-        every { mockTextToSpeech.shutdown() } just Runs
+        
+        every { mockTextToSpeech.stop() } returns TextToSpeech.SUCCESS
 
         // When
         ttsService.initialize(config)
@@ -573,8 +552,7 @@ class TextToSpeechServiceTest {
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setVolume(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setOnUtteranceProgressListener(any()) } just Runs
+        
 
         // When
         ttsService.initialize(config)
