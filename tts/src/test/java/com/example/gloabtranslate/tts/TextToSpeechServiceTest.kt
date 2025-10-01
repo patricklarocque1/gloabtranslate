@@ -10,6 +10,9 @@ import kotlinx.coroutines.test.*
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import java.util.Locale
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -18,6 +21,8 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [28])
 class TextToSpeechServiceTest {
 
     private lateinit var mockContext: Context
@@ -30,37 +35,44 @@ class TextToSpeechServiceTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         
-        // Create mocks
+        // Initialize MockK annotations
+        MockKAnnotations.init(this, relaxUnitFun = true)
+        
+        // Create mocks  
         mockContext = mockk(relaxed = true)
         mockTextToSpeech = mockk(relaxed = true)
         
-        // Mock static methods
+        // Mock static TextToSpeech constructor
         mockkStatic(TextToSpeech::class)
-        
-        every { TextToSpeech(any(), any()) } answers {
-            val callback = secondArg<(Int) -> Unit>()
-            callback(TextToSpeech.SUCCESS)
+        every { 
+            TextToSpeech(any<Context>(), any<TextToSpeech.OnInitListener>())
+        } answers {
+            val callback = arg<TextToSpeech.OnInitListener>(1)
+            callback.onInit(TextToSpeech.SUCCESS)
             mockTextToSpeech
         }
         
-        ttsService = mockk<TextToSpeechService>(relaxed = true)
+        // Create real service instance with mocked TextToSpeech constructor
+        ttsService = TextToSpeechService(mockContext)
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
         clearAllMocks()
+        unmockkStatic(TextToSpeech::class)
     }
 
     @Test
     fun `initialize should return true when TTS initializes successfully`() = runTest {
         // Given
         val config = TextToSpeechService.TTSConfig()
+        
+        // Mock the required TTS methods
         every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
         every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
         every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
         
-
         // When
         val result = ttsService.initialize(config)
 

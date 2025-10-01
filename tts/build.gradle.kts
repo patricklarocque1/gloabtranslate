@@ -65,6 +65,7 @@ dependencies {
     // Test dependencies
     testImplementation(libs.junit)
     testImplementation("io.mockk:mockk:1.13.8") // MockK for Kotlin testing
+    testImplementation("org.robolectric:robolectric:4.13") // Robolectric for Android unit tests
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotlin.test.junit) // For kotlin.test assertions
     androidTestImplementation(libs.androidx.junit)
