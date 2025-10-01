@@ -201,7 +201,7 @@
                     android:progressTint="@color/confidence_high" />
 
                 <TextView
-                    android:id="@+id/confidence_indicator"
+                    android:id="@+id/confidence_percentage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
