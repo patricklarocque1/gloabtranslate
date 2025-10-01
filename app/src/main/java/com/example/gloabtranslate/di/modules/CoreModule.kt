@@ -2,6 +2,7 @@ package com.example.gloabtranslate.di.modules
 
 import android.content.Context
 import com.example.gloabtranslate.core.analytics.UserAnalytics
+import kotlinx.coroutines.flow.map
 import com.example.gloabtranslate.core.data.preferences.UserPreferencesManager
 import com.example.gloabtranslate.core.data.preferences.PermissionPreferences
 import com.example.gloabtranslate.core.data.persistence.ServiceStateManager
@@ -92,7 +93,22 @@ object CoreModule {
             }
             
             override fun getTranslationHistory(): kotlinx.coroutines.flow.Flow<List<com.example.gloabtranslate.core.data.models.TranslationResult>> {
-                return historyRepository.translationHistory
+                return historyRepository.historyFlow.map { historyEntries ->
+                    historyEntries.map { entry ->
+                        com.example.gloabtranslate.core.data.models.TranslationResult(
+                            success = entry.success,
+                            originalText = entry.originalText,
+                            translatedText = entry.translatedText,
+                            sourceLanguage = entry.sourceLanguage,
+                            targetLanguage = entry.targetLanguage,
+                            confidence = entry.confidence ?: 0.0f,
+                            isPartial = entry.isPartial,
+                            isOnDevice = entry.isOnDevice,
+                            timestamp = entry.timestamp,
+                            error = entry.error
+                        )
+                    }
+                }
             }
             
             override suspend fun saveTranslationResult(result: com.example.gloabtranslate.core.data.models.TranslationResult) {
@@ -100,7 +116,7 @@ object CoreModule {
             }
             
             override suspend fun clearHistory() {
-                historyRepository.clearHistory()
+                historyRepository.clearAllHistory()
             }
         }
     }
