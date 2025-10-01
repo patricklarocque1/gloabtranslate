@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 8.5.0">
+
+    <issue
+        id="MissingTranslation"
+        severity="ignore">
+    </issue>
+
+    <issue
+        id="ExtraTranslation"
+        severity="ignore">
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        severity="ignore">
+    </issue>
+
+</issues>

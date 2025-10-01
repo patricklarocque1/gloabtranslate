@@ -41,6 +41,13 @@
 # Keep Media3
 -keep class androidx.media3.** { *; }
 
+# Keep Kotlin metadata
+-keepattributes RuntimeVisibleAnnotations,RuntimeVisibleParameterAnnotations,RuntimeVisibleTypeAnnotations
+-keep class kotlin.Metadata { *; }
+-keepclassmembers class ** {
+    @kotlin.jvm.JvmField *;
+}
+
 # Remove logging in release
 -assumenosideeffects class android.util.Log {
     public static boolean isLoggable(java.lang.String, int);

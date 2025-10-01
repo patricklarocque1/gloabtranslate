@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Store Metadata -->
+    <string name="app_short_description">الترجمة الفورية مع دعم الصوت</string>
+    <string name="app_full_description">المترجم العالمي هو تطبيق ترجمة قوي وفوري يكسر حواجز اللغة بتقنية الذكاء الاصطناعي المتقدمة. ترجم النص والصوت والصور فوراً عبر أكثر من 100 لغة مع الدعم غير المتصل والتعرف على الصوت.
+
+الميزات الرئيسية:
+• الترجمة النصية الفورية لأكثر من 100 لغة
+• الترجمة الصوتية مع التعرف على الكلام
+• ترجمة الكاميرا للافتات والقوائم والوثائق
+• الترجمة غير المتصلة للأزواج اللغوية الشائعة
+• وضع المحادثة للتواصل ثنائي الاتجاه
+• التاريخ والمفضلة للوصول السهل
+• الوضع المظلم والواجهة القابلة للتخصيص
+• التركيز على الخصوصية مع خيارات المعالجة المحلية
+
+مثالي للمسافرين والطلاب والمهنيين وأي شخص يحتاج ترجمة موثوقة أثناء التنقل. حمّل المترجم العالمي اليوم وتواصل بثقة بأي لغة!</string>
+    
+    <!-- App Category and Tags -->
+    <string name="app_category">أدوات</string>
+    <string name="app_tags">ترجمة,لغة,صوت,غير_متصل,سفر,تواصل,ذكاء_اصطناعي,متعدد_اللغات</string>
+    
+    <!-- Developer Information -->
+    <string name="developer_name">فريق المترجم العالمي</string>
+    <string name="developer_email">support@gloabtranslate.com</string>
+    <string name="developer_website">https://gloabtranslate.com</string>
+    <string name="developer_privacy_policy">https://gloabtranslate.com/privacy</string>
+    
+    <!-- App Store Compliance -->
+    <string name="app_size">25 ميجابايت</string>
+    <string name="minimum_android_version">أندرويد 14 (API 34)</string>
+    <string name="permissions_required">الميكروفون، الكاميرا، الإنترنت، التخزين</string>
+    
+    <!-- Feature Highlights -->
+    <string name="feature_1">الترجمة الفورية لأكثر من 100 لغة</string>
+    <string name="feature_2">التعرف على الصوت وتحويل النص إلى كلام</string>
+    <string name="feature_3">قدرات الترجمة غير المتصلة</string>
+    <string name="feature_4">ترجمة الكاميرا للافتات والوثائق</string>
+    <string name="feature_5">وضع المحادثة للتواصل ثنائي الاتجاه</string>
+    <string name="feature_6">إدارة التاريخ والمفضلة</string>
+    <string name="feature_7">الوضع المظلم والواجهة القابلة للتخصيص</string>
+    <string name="feature_8">التركيز على الخصوصية مع المعالجة المحلية</string>
+    
+    <!-- Screenshots Descriptions -->
+    <string name="screenshot_1_description">واجهة الترجمة الرئيسية مع إدخال النص</string>
+    <string name="screenshot_2_description">الترجمة الصوتية مع زر الميكروفون</string>
+    <string name="screenshot_3_description">ترجمة الكاميرا لمسح إشارة</string>
+    <string name="screenshot_4_description">شاشة اختيار اللغة</string>
+    <string name="screenshot_5_description">الإعدادات والتفضيلات</string>
+    <string name="screenshot_6_description">تاريخ الترجمة والمفضلة</string>
+    <string name="screenshot_7_description">واجهة وضع المحادثة</string>
+    <string name="screenshot_8_description">خيارات الترجمة غير المتصلة</string>
+    
+    <!-- Keywords for App Store Optimization -->
+    <string name="keywords">ترجمة,لغة,صوت,غير_متصل,سفر,تواصل,ذكاء_اصطناعي,متعدد_اللغات,فوري,كاميرا,محادثة,خصوصية,محلي</string>
+    
+    <!-- App Store Promotional Text -->
+    <string name="promotional_text">اكسر حواجز اللغة مع المترجم العالمي! الترجمة الفورية والتعرف على الصوت والدعم غير المتصل في تطبيق واحد قوي. مثالي للمسافرين والطلاب والمهنيين.</string>
+    
+    <!-- What's New -->
+    <string name="whats_new">• ميزات ترجمة صوتية جديدة
+• تحسين دقة الترجمة غير المتصلة
+• تحسين ترجمة الكاميرا
+• تحسين وضع المحادثة
+• تحديث دعم اللغات
+• تحسينات الأداء
+• إصلاح الأخطاء وتحسينات الاستقرار</string>
+</resources>

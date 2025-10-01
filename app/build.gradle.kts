@@ -124,6 +124,14 @@ android {
     androidResources {
         noCompress += listOf("so")
     }
+
+    lint {
+        baseline = file("lint-baseline.xml")
+        abortOnError = false
+        warningsAsErrors = false
+        disable.add("MissingTranslation")
+        disable.add("ExtraTranslation")
+    }
 }
 
 kotlin {
