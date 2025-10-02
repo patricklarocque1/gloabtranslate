@@ -1,5 +1,3 @@
-<!-- Add this to app/src/debug/AndroidManifest.xml for debug builds only -->
-
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     
@@ -10,10 +8,7 @@
             android:exported="true"
             android:label="TTS Debug Test"
             android:theme="@style/Theme.Material3.DynamicColors.DayNight">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            <!-- Don't make this a launcher activity to avoid conflicts -->
         </activity>
     </application>
     
