@@ -54,6 +54,7 @@ kotlinx-serialization-json = "1.6.0"
 # Testing dependencies
 mockito = "5.8.0"
 mockito-kotlin = "5.3.1"
+mockk = "1.13.8" # Added MockK version
 test-rules = "1.6.1"
 test-runner = "1.6.2"
 robolectric = "4.16" # Added Robolectric version
@@ -131,6 +132,7 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
 mockito-android = { group = "org.mockito", name = "mockito-android", version.ref = "mockito" }
 mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockito-kotlin" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" } # Added MockK library
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 test-rules = { group = "androidx.test", name = "rules", version.ref = "test-rules" }
 test-runner = { group = "androidx.test", name = "runner", version.ref = "test-runner" }

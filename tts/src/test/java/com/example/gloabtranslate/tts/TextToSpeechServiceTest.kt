@@ -42,12 +42,13 @@ class TextToSpeechServiceTest {
         mockContext = mockk(relaxed = true)
         mockTextToSpeech = mockk(relaxed = true)
         
-        // Mock static TextToSpeech constructor
+        // Mock static TextToSpeech constructor with proper error handling
         mockkStatic(TextToSpeech::class)
         every { 
             TextToSpeech(any<Context>(), any<TextToSpeech.OnInitListener>())
         } answers {
             val callback = arg<TextToSpeech.OnInitListener>(1)
+            // Simulate successful initialization
             callback.onInit(TextToSpeech.SUCCESS)
             mockTextToSpeech
         }
