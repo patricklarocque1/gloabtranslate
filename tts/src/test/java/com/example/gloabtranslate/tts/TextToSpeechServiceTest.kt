@@ -4,6 +4,7 @@ import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import io.mockk.*
+import io.mockk.impl.annotations.MockK
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.*
@@ -13,6 +14,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+
 import java.util.Locale
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -22,10 +24,16 @@ import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [28])
+@Config(
+    sdk = [29],
+    application = android.app.Application::class
+)
 class TextToSpeechServiceTest {
 
+    @MockK
     private lateinit var mockContext: Context
+    
+    @MockK
     private lateinit var mockTextToSpeech: TextToSpeech
 
     private lateinit var ttsService: TextToSpeechService
@@ -35,33 +43,43 @@ class TextToSpeechServiceTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         
-        // Initialize MockK annotations
+        // Initialize MockK with proper configuration
         MockKAnnotations.init(this, relaxUnitFun = true)
         
-        // Create mocks  
-        mockContext = mockk(relaxed = true)
-        mockTextToSpeech = mockk(relaxed = true)
+        // Setup mock context with relaxed behavior
+        every { mockContext.getSystemService(any()) } returns null
+        every { mockContext.packageName } returns "com.example.gloabtranslate.test"
         
-        // Mock static TextToSpeech constructor with proper error handling
+        // Mock static TextToSpeech constructor - improved approach
         mockkStatic(TextToSpeech::class)
         every { 
             TextToSpeech(any<Context>(), any<TextToSpeech.OnInitListener>())
         } answers {
-            val callback = arg<TextToSpeech.OnInitListener>(1)
-            // Simulate successful initialization
+            val callback = secondArg<TextToSpeech.OnInitListener>()
+            // Simulate successful initialization asynchronously
             callback.onInit(TextToSpeech.SUCCESS)
             mockTextToSpeech
         }
         
-        // Create real service instance with mocked TextToSpeech constructor
+        // Setup common TextToSpeech mock behaviors
+        justRun { mockTextToSpeech.setOnUtteranceProgressListener(any()) }
+        justRun { mockTextToSpeech.shutdown() }
+        every { mockTextToSpeech.stop() } returns TextToSpeech.SUCCESS
+        
+        // Create real service instance with mocked dependencies
         ttsService = TextToSpeechService(mockContext)
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+        
+        // Cleanup TTS service if needed
+        runCatching { ttsService.cleanup() }
+        
+        // Clear all mocks and static mocks
         clearAllMocks()
-        unmockkStatic(TextToSpeech::class)
+        unmockkAll()
     }
 
     @Test
@@ -83,16 +101,22 @@ class TextToSpeechServiceTest {
 
     @Test
     fun `initialize should return false when TTS initialization fails`() = runTest {
-        // Given
-        val config = TextToSpeechService.TTSConfig()
-        every { TextToSpeech(any(), any()) } answers {
-            val callback = secondArg<(Int) -> Unit>()
-            callback(TextToSpeech.ERROR)
+        // Given - Create a new service instance with failed TTS initialization
+        clearMocks(mockTextToSpeech)
+        
+        every { 
+            TextToSpeech(any<Context>(), any<TextToSpeech.OnInitListener>())
+        } answers {
+            val callback = secondArg<TextToSpeech.OnInitListener>()
+            callback.onInit(TextToSpeech.ERROR)
             mockTextToSpeech
         }
+        
+        val failingTtsService = TextToSpeechService(mockContext)
+        val config = TextToSpeechService.TTSConfig()
 
         // When
-        val result = ttsService.initialize(config)
+        val result = failingTtsService.initialize(config)
 
         // Then
         assertFalse(result)
@@ -100,12 +124,16 @@ class TextToSpeechServiceTest {
 
     @Test
     fun `initialize should handle exceptions gracefully`() = runTest {
-        // Given
+        // Given - Create a service instance that throws exception during TTS creation
+        every { 
+            TextToSpeech(any<Context>(), any<TextToSpeech.OnInitListener>())
+        } throws RuntimeException("Test exception")
+        
+        val exceptionTtsService = TextToSpeechService(mockContext)
         val config = TextToSpeechService.TTSConfig()
-        every { TextToSpeech(any(), any()) } throws RuntimeException("Test exception")
 
         // When
-        val result = ttsService.initialize(config)
+        val result = exceptionTtsService.initialize(config)
 
         // Then
         assertFalse(result)
