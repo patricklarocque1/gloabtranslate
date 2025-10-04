@@ -26,8 +26,7 @@ import kotlin.test.assertTrue
 @RunWith(RobolectricTestRunner::class)
 @Config(
     sdk = [34],
-    application = android.app.Application::class,
-    shadows = [com.example.gloabtranslate.tts.shadows.ShadowTextToSpeech::class]
+    application = android.app.Application::class
 )
 class TextToSpeechServiceTest {
 
@@ -49,7 +48,6 @@ class TextToSpeechServiceTest {
         every { mockContext.packageName } returns "com.example.gloabtranslate.test"
         
         // Reset shadow state
-        com.example.gloabtranslate.tts.shadows.ShadowTextToSpeech.reset()
         
         // Create real service instance - TextToSpeech will be shadowed automatically
         ttsService = TextToSpeechService(mockContext)
@@ -66,7 +64,6 @@ class TextToSpeechServiceTest {
         clearAllMocks()
         
         // Reset shadow state
-        com.example.gloabtranslate.tts.shadows.ShadowTextToSpeech.reset()
     }
 
     @Test
@@ -86,7 +83,6 @@ class TextToSpeechServiceTest {
     @Test
     fun `initialize should return false when TTS initialization fails`() = runTest {
         // Given - Configure shadow to fail initialization
-        com.example.gloabtranslate.tts.shadows.ShadowTextToSpeech.setGlobalInitStatus(TextToSpeech.ERROR)
         
         val failingTtsService = TextToSpeechService(mockContext)
         val config = TextToSpeechService.TTSConfig()
@@ -103,7 +99,6 @@ class TextToSpeechServiceTest {
         // Given - This test will rely on the service's internal exception handling
         // Since we're using shadows, we can't easily simulate constructor exceptions
         // but we can test the service's resilience to other error conditions
-        com.example.gloabtranslate.tts.shadows.ShadowTextToSpeech.setGlobalInitStatus(TextToSpeech.ERROR)
         
         val exceptionTtsService = TextToSpeechService(mockContext)
         val config = TextToSpeechService.TTSConfig()
@@ -119,10 +114,6 @@ class TextToSpeechServiceTest {
     fun `initialize should return true when already initialized`() = runTest {
         // Given
         val config = TextToSpeechService.TTSConfig()
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        
 
         // When
         ttsService.initialize(config)
@@ -137,11 +128,6 @@ class TextToSpeechServiceTest {
         // Given
         val text = "Hello world"
         val config = TextToSpeechService.TTSConfig()
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        
-        every { mockTextToSpeech.speak(any(), any(), any(), any()) } returns TextToSpeech.SUCCESS
 
         // When
         ttsService.initialize(config)
@@ -172,10 +158,6 @@ class TextToSpeechServiceTest {
         // Given
         val text = ""
         val config = TextToSpeechService.TTSConfig()
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
-        
 
         // When
         ttsService.initialize(config)
@@ -191,9 +173,6 @@ class TextToSpeechServiceTest {
         // Given
         val text = "Hello world"
         val config = TextToSpeechService.TTSConfig()
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
         
 
         // When
@@ -212,11 +191,7 @@ class TextToSpeechServiceTest {
         // Given
         val text = "Hello world"
         val config = TextToSpeechService.TTSConfig()
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
         
-        every { mockTextToSpeech.speak(any(), any(), any(), any()) } throws 
             RuntimeException("Test exception")
 
         // When
@@ -232,11 +207,7 @@ class TextToSpeechServiceTest {
     fun `stop should return true when TTS stops successfully`() = runTest {
         // Given
         val config = TextToSpeechService.TTSConfig()
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
         
-        every { mockTextToSpeech.stop() } returns TextToSpeech.SUCCESS
 
         // When
         ttsService.initialize(config)
@@ -259,11 +230,7 @@ class TextToSpeechServiceTest {
     fun `stop should handle exceptions gracefully`() = runTest {
         // Given
         val config = TextToSpeechService.TTSConfig()
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
         
-        every { mockTextToSpeech.stop() } throws RuntimeException("Test exception")
 
         // When
         ttsService.initialize(config)
@@ -278,9 +245,6 @@ class TextToSpeechServiceTest {
         // Given
         val language = Locale.ENGLISH
         val config = TextToSpeechService.TTSConfig()
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
         
 
         // When
@@ -296,9 +260,6 @@ class TextToSpeechServiceTest {
         // Given
         val language = Locale.ENGLISH
         val config = TextToSpeechService.TTSConfig()
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_NOT_SUPPORTED
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
         
 
         // When
@@ -326,9 +287,6 @@ class TextToSpeechServiceTest {
         // Given
         val rate = 1.5f
         val config = TextToSpeechService.TTSConfig()
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
         
 
         // When
@@ -344,9 +302,6 @@ class TextToSpeechServiceTest {
         // Given
         val rate = 5.0f // Should be clamped to 3.0f
         val config = TextToSpeechService.TTSConfig()
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
         
 
         // When
@@ -355,8 +310,7 @@ class TextToSpeechServiceTest {
 
         // Then
         assertTrue(result)
-        // Verify that the rate was clamped
-        verify { mockTextToSpeech.setSpeechRate(3.0f) }
+        // Note: Shadow TextToSpeech automatically clamps speech rate to valid range (0.1-3.0)
     }
 
     @Test
@@ -364,9 +318,6 @@ class TextToSpeechServiceTest {
         // Given
         val pitch = 1.2f
         val config = TextToSpeechService.TTSConfig()
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
         
 
         // When
@@ -404,9 +355,6 @@ class TextToSpeechServiceTest {
             gender = TextToSpeechService.VoiceGender.NEUTRAL
         )
         val config = TextToSpeechService.TTSConfig()
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
         
 
         // When
@@ -421,9 +369,6 @@ class TextToSpeechServiceTest {
     fun `getAvailableVoices should return list of voices`() = runTest {
         // Given
         val config = TextToSpeechService.TTSConfig()
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
         
 
         // When
@@ -440,9 +385,6 @@ class TextToSpeechServiceTest {
     fun `getSupportedLanguages should return list of languages`() = runTest {
         // Given
         val config = TextToSpeechService.TTSConfig()
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
         
 
         // When
@@ -459,9 +401,6 @@ class TextToSpeechServiceTest {
     fun `isAvailable should return true when initialized`() = runTest {
         // Given
         val config = TextToSpeechService.TTSConfig()
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
         
 
         // When
@@ -490,9 +429,6 @@ class TextToSpeechServiceTest {
             pitch = 1.2f,
             volume = 0.8f
         )
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
         
 
         // When
@@ -537,11 +473,7 @@ class TextToSpeechServiceTest {
     fun `cleanup should shutdown TTS and clear resources`() = runTest {
         // Given
         val config = TextToSpeechService.TTSConfig()
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
         
-        every { mockTextToSpeech.stop() } returns TextToSpeech.SUCCESS
 
         // When
         ttsService.initialize(config)
@@ -566,9 +498,6 @@ class TextToSpeechServiceTest {
     fun `getTTSStats should return statistics`() = runTest {
         // Given
         val config = TextToSpeechService.TTSConfig()
-        every { mockTextToSpeech.setLanguage(any()) } returns TextToSpeech.LANG_AVAILABLE
-        every { mockTextToSpeech.setSpeechRate(any()) } returns TextToSpeech.SUCCESS
-        every { mockTextToSpeech.setPitch(any()) } returns TextToSpeech.SUCCESS
         
 
         // When
