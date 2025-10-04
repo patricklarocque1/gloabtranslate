@@ -25,7 +25,7 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(
-    sdk = [29],
+    sdk = [34],
     application = android.app.Application::class
 )
 class TextToSpeechServiceTest {
@@ -50,21 +50,19 @@ class TextToSpeechServiceTest {
         every { mockContext.getSystemService(any()) } returns null
         every { mockContext.packageName } returns "com.example.gloabtranslate.test"
         
-        // Mock static TextToSpeech constructor - improved approach
+        // Create fully relaxed mock that handles all method calls
+        mockTextToSpeech = mockk(relaxed = true)
+        
+        // Mock static TextToSpeech constructor to return our relaxed mock
         mockkStatic(TextToSpeech::class)
         every { 
             TextToSpeech(any<Context>(), any<TextToSpeech.OnInitListener>())
         } answers {
             val callback = secondArg<TextToSpeech.OnInitListener>()
-            // Simulate successful initialization asynchronously
+            // Simulate successful initialization
             callback.onInit(TextToSpeech.SUCCESS)
             mockTextToSpeech
         }
-        
-        // Setup common TextToSpeech mock behaviors
-        justRun { mockTextToSpeech.setOnUtteranceProgressListener(any()) }
-        justRun { mockTextToSpeech.shutdown() }
-        every { mockTextToSpeech.stop() } returns TextToSpeech.SUCCESS
         
         // Create real service instance with mocked dependencies
         ttsService = TextToSpeechService(mockContext)
