@@ -22,6 +22,10 @@ benchmarkMacroJunit4 = "1.2.0-beta01"
 kotlin = "2.2.20"
 kotlinCompiler = "2.2.20"
 
+# Compose
+compose-bom = "2024.10.01"
+compose-activity = "1.9.3"
+
 # Kotlin Coroutines (confirmed latest stable as of Aug 30, 2024)
 coroutines = "1.10.2"
 
@@ -87,6 +91,16 @@ androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchm
 # Kotlin Coroutines
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+
+# Compose BOM and libraries
+compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
+compose-ui = { group = "androidx.compose.ui", name = "ui" }
+compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+compose-activity = { group = "androidx.activity", name = "activity-compose", version.ref = "compose-activity" }
 
 # ML Kit libraries (confirmed latest versions)
 mlkit-translate = { group = "com.google.mlkit", name = "translate", version.ref = "mlkit-translate" }

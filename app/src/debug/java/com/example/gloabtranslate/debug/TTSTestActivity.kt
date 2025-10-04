@@ -33,6 +33,7 @@ class TTSTestActivity : ComponentActivity() {
     
     private lateinit var ttsService: TextToSpeechService
     private var testResults = mutableStateListOf<String>()
+    private var isInitialized = false
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +51,12 @@ class TTSTestActivity : ComponentActivity() {
         var testText by remember { mutableStateOf("Hello world, this is a TTS test") }
         var isInitialized by remember { mutableStateOf(false) }
         var isLoading by remember { mutableStateOf(false) }
+        var isAvailable by remember { mutableStateOf(false) }
+        
+        // Check TTS availability when the composable loads
+        LaunchedEffect(Unit) {
+            isAvailable = ttsService.isAvailable()
+        }
         
         Column(
             modifier = Modifier
@@ -170,7 +177,7 @@ class TTSTestActivity : ComponentActivity() {
                     )
                     
                     Text(
-                        text = "Available: ${ttsService.isAvailable()}",
+                        text = "Available: $isAvailable",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    id("org.jetbrains.kotlin.plugin.compose") version "2.2.20"
 }
 
 android {
@@ -110,6 +111,11 @@ android {
 
     buildFeatures {
         buildConfig = true
+        compose = true
+    }
+    
+    composeOptions {
+        kotlinCompilerExtensionVersion = libs.versions.compose.bom.get()
     }
     buildToolsVersion = libs.versions.buildTools.get()
 
@@ -149,6 +155,15 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+    
+    // Compose BOM and dependencies
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.tooling.preview)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.activity)
+    debugImplementation(libs.compose.ui.tooling)
+    debugImplementation(libs.compose.ui.test.manifest)
 
     // Kotlin Coroutines
     implementation(libs.kotlinx.coroutines.core)
