@@ -1,6 +1,11 @@
 [versions]
+# Core Build Tooling
+# Gradle 9.1.0 is the latest stable release (Supports Java 25)
+# Note: This version is set in gradle/wrapper/gradle-wrapper.properties
+# gradle = "9.1.0" # This line is often excluded but useful for reference
+
 # Android Gradle Plugin
-agp = "8.9.1"
+agp = "8.13.0"
 
 # Android SDK versions
 compileSdk = "36"
