@@ -68,7 +68,7 @@ dependencies {
     
     // Test dependencies
     testImplementation(libs.junit)
-    testImplementation("io.mockk:mockk:1.13.8") // MockK for Kotlin testing
+    testImplementation("io.mockk:mockk:1.14.6") // MockK for Kotlin testing
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotlin.test.junit) // For kotlin.test assertions
     testImplementation(libs.robolectric)
