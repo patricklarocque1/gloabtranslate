@@ -285,7 +285,7 @@ class TTSTestActivity : ComponentActivity() {
                     Locale.ENGLISH,
                     Locale.FRENCH,
                     Locale.GERMAN,
-                    Locale("es", "ES") // Spanish
+                    Locale.Builder().setLanguage("es").setRegion("ES").build() // Spanish
                 )
                 
                 testLocales.forEach { locale ->

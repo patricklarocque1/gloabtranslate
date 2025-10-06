@@ -8,6 +8,9 @@ import com.example.gloabtranslate.core.data.preferences.PermissionPreferences
 import com.example.gloabtranslate.core.data.persistence.ServiceStateManager
 import com.example.gloabtranslate.core.data.repository.TranslationHistoryRepository
 import com.example.gloabtranslate.core.data.repository.TranslationRepository
+import com.example.gloabtranslate.core.external.ExternalServiceStateReporter
+import com.example.gloabtranslate.core.external.ExternalServiceType
+import com.example.gloabtranslate.core.external.ExternalServiceStatus
 import com.example.gloabtranslate.core.error.ErrorHandler
 import com.example.gloabtranslate.core.error.ErrorRecovery
 import com.example.gloabtranslate.core.error.ErrorReporter
@@ -33,6 +36,58 @@ object CoreModule {
     fun provideUserPreferencesManager(context: Context): UserPreferencesManager {
         return UserPreferencesManager.getInstance(context)
     }
+    
+    @Provides
+    @Singleton
+    fun provideConfigurationManager(preferencesManager: UserPreferencesManager): com.example.gloabtranslate.core.data.config.ConfigurationManager {
+        return com.example.gloabtranslate.core.data.config.ConfigurationManager(preferencesManager)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDebugConfigProvider(configurationManager: com.example.gloabtranslate.core.data.config.ConfigurationManager): com.example.gloabtranslate.core.data.config.DebugConfigProvider {
+        return configurationManager
+    }
+    
+    @Provides
+    @Singleton
+    fun provideErrorRecoverySystem(): com.example.gloabtranslate.core.error.ErrorRecoverySystem {
+        return com.example.gloabtranslate.core.error.ErrorRecoverySystem()
+    }
+
+    @Provides
+    @Singleton
+    fun provideExternalServiceStateReporter(
+        serviceCoordinator: com.example.gloabtranslate.service.ServiceCoordinator
+    ): ExternalServiceStateReporter {
+        return object : ExternalServiceStateReporter {
+            override fun report(
+                type: ExternalServiceType,
+                status: ExternalServiceStatus,
+                error: String?,
+                metrics: Map<String, Any?>?
+            ) {
+                when (type) {
+                    ExternalServiceType.AUDIO_RECORDING -> {
+                        val mappedStatus = when (status) {
+                            ExternalServiceStatus.INITIALIZING -> com.example.gloabtranslate.service.ServiceCoordinator.ServiceStatus.INITIALIZING
+                            ExternalServiceStatus.READY -> com.example.gloabtranslate.service.ServiceCoordinator.ServiceStatus.READY
+                            ExternalServiceStatus.ERROR -> com.example.gloabtranslate.service.ServiceCoordinator.ServiceStatus.ERROR
+                            ExternalServiceStatus.STOPPED -> com.example.gloabtranslate.service.ServiceCoordinator.ServiceStatus.STOPPED
+                        }
+                        serviceCoordinator.reportExternalServiceState(
+                            com.example.gloabtranslate.service.ServiceCoordinator.ServiceType.AUDIO_RECORDING,
+                            mappedStatus,
+                            error
+                        )
+                        if (metrics != null) {
+                            serviceCoordinator.reportExternalServiceMetrics("AUDIO_RECORDING", metrics)
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     @Provides
     @Singleton
@@ -54,9 +109,13 @@ object CoreModule {
 
     @Provides
     @Singleton
-    fun provideTranslationRepository(context: Context, historyRepository: TranslationHistoryRepository): TranslationRepository {
+    fun provideTranslationRepository(
+        context: Context,
+        historyRepository: TranslationHistoryRepository,
+        translationPipeline: com.example.gloabtranslate.nlp.TranslationPipeline
+    ): TranslationRepository {
         return object : TranslationRepository {
-            private val translationPipeline by lazy { com.example.gloabtranslate.nlp.TranslationPipeline(context) }
+            // Use injected translation pipeline (constructed via DI with its dependencies)
             
             override suspend fun translateText(text: String, sourceLanguage: String, targetLanguage: String): com.example.gloabtranslate.core.data.models.TranslationResult {
                 return try {

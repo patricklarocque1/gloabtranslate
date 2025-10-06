@@ -17,10 +17,10 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 
 /**
  * Integration tests for service binding functionality.
@@ -76,10 +76,10 @@ class ServiceBindingTest {
         delay(1000)
 
         // Then
-        assertTrue(bindResult, "Service should bind successfully")
-        assertTrue(serviceBound, "Service should be bound")
+        assertTrue("Service should bind successfully", bindResult)
+        assertTrue("Service should be bound", serviceBound)
         assertNotNull(liveTranslateService, "LiveTranslateService should not be null")
-        assertTrue(connectionResult == true, "Service connection should succeed")
+        assertTrue("Service connection should succeed", connectionResult == true)
     }
 
     @Test
@@ -194,7 +194,7 @@ class ServiceBindingTest {
 
         // Then
         assertFalse(initialState!!, "Initial state should not be recording")
-        assertTrue(recordingState!!, "State should be recording after start")
+        assertTrue("State should be recording after start", recordingState!!)
         assertFalse(stoppedState!!, "State should not be recording after stop")
     }
 
@@ -225,8 +225,8 @@ class ServiceBindingTest {
             delay(500) // Wait for connection
 
             // Then
-            assertTrue(bindResult, "Service should bind with flag: $flag")
-            assertTrue(serviceBound, "Service should be bound with flag: $flag")
+            assertTrue("Service should bind with flag: $flag", bindResult)
+            assertTrue("Service should be bound with flag: $flag", serviceBound)
 
             // Cleanup
             context.unbindService(serviceConnection!!)
@@ -259,7 +259,7 @@ class ServiceBindingTest {
         }
 
         // Then
-        assertTrue(serviceBound, "Service should be bound after multiple bindings")
+        assertTrue("Service should be bound after multiple bindings", serviceBound)
 
         // Cleanup
         connections.forEach { connection ->
@@ -296,8 +296,8 @@ class ServiceBindingTest {
         delay(1000) // Wait for connection
 
         // Then
-        assertTrue(bindResult, "Service should bind successfully")
-        assertTrue(connectionResult == true, "Service connection should succeed with non-null service")
+        assertTrue("Service should bind successfully", bindResult)
+        assertTrue("Service connection should succeed with non-null service", connectionResult == true)
     }
 
     @Test
@@ -324,9 +324,9 @@ class ServiceBindingTest {
         delay(5000) // Wait longer for connection
 
         // Then
-        assertTrue(bindResult, "Service should bind successfully")
-        assertTrue(serviceBound, "Service should be bound")
-        assertTrue(connectionResult == true, "Service connection should succeed within timeout")
+        assertTrue("Service should bind successfully", bindResult)
+        assertTrue("Service should be bound", serviceBound)
+        assertTrue("Service connection should succeed within timeout", connectionResult == true)
     }
 
     @Test

@@ -81,16 +81,17 @@ class RecognitionServiceTest {
         // Mock static methods
         mockkStatic(LanguageIdentification::class)
         mockkStatic(Translation::class)
-        mockkObject(ModelManager.Companion)
+        // Legacy getInstance removed in production; companion mock retained only if needed, but tests will inject directly
+        // mockkObject(ModelManager.Companion)
         
         every { LanguageIdentification.getClient(any()) } returns mockLanguageIdentifier
         every { Translation.getClient(any<TranslatorOptions>()) } returns mockTranslator
         mockModelManager = mockk(relaxed = true)
-        every { ModelManager.getInstance(mockContext) } returns mockModelManager
+    // Replace legacy getInstance usage by stubbing companion but still directly inject mock into service
         coEvery { mockModelManager.ensureLanguagePairAvailable(any(), any(), any()) } just Runs
 
         // Create service with mocked availability manager
-        recognitionService = RecognitionService(mockContext)
+        recognitionService = RecognitionService(mockContext, mockModelManager)
 
         val availabilityField = RecognitionService::class.java.getDeclaredField("availabilityManager")
         availabilityField.isAccessible = true

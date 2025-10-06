@@ -36,9 +36,29 @@
     <!-- Feedback Messages -->
     <string name="text_copied">Text copied to clipboard</string>
     <string name="just_now">Just now</string>
+    
+    <!-- Time strings (fallback for plurals) -->
     <string name="minutes_ago">%1$d minutes ago</string>
     <string name="hours_ago">%1$d hours ago</string>
     <string name="days_ago">%1$d days ago</string>
+    
+    <!-- Time plurals -->
+    <plurals name="minutes_ago_plural">
+        <item quantity="one">%1$d minute ago</item>
+        <item quantity="other">%1$d minutes ago</item>
+    </plurals>
+    
+    <plurals name="hours_ago_plural">
+        <item quantity="one">%1$d hour ago</item>
+        <item quantity="other">%1$d hours ago</item>
+    </plurals>
+    
+    <plurals name="days_ago_plural">
+        <item quantity="one">%1$d day ago</item>
+        <item quantity="other">%1$d days ago</item>
+    </plurals>
+    
+
     
     <!-- Accessibility -->
     <string name="original_text_hint">Original text to be translated</string>
@@ -261,7 +281,15 @@
     
     <!-- History Menu -->
     <string name="export_history">Export History</string>
-    <string name="selected_items">%1$d selected</string>
+    <plurals name="selected_items">
+        <item quantity="one">%1$d selected</item>
+        <item quantity="other">%1$d selected</item>
+    </plurals>
+    
+    <plurals name="items_deleted_plural">
+        <item quantity="one">%1$d item deleted</item>
+        <item quantity="other">%1$d items deleted</item>
+    </plurals>
     <string name="select_all">Select All</string>
     <string name="delete_selected">Delete Selected</string>
     <string name="exit_selection">Exit Selection</string>

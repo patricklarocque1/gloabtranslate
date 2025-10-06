@@ -22,15 +22,18 @@ import kotlin.coroutines.resumeWithException
  * Service for handling speech recognition and translation with graceful fallback.
  * Automatically switches between on-device and cloud-based recognition based on availability.
  */
-class RecognitionService(private val context: Context) {
+class RecognitionService(
+    private val context: Context,
+    private val modelManager: ModelManager
+) {
     
     companion object {
         private const val TAG = "RecognitionService"
         private const val RECOGNITION_TIMEOUT_MS = 10000L // 10 seconds
     }
     
-    private val availabilityManager = RecognizerAvailabilityManager(context)
-    private val modelManager by lazy { ModelManager.getInstance(context) }
+    private val availabilityManager = RecognizerAvailabilityManager(context, modelManager)
+    // ModelManager is now injected via constructor
     private var languageIdentifier: LanguageIdentifier? = null
     private val activeTranslators = mutableMapOf<String, Translator>()
     

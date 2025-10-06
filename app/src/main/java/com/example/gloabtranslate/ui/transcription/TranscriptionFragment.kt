@@ -30,7 +30,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.gloabtranslate.R
 import com.example.gloabtranslate.core.data.repository.TranslationHistoryRepository
+import com.example.gloabtranslate.core.data.repository.TranslationRepository
+import com.example.gloabtranslate.speech.SpeechRecognitionService
 import dagger.android.support.AndroidSupportInjection
+import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
@@ -39,6 +42,15 @@ import kotlinx.coroutines.flow.*
  * confidence visualization, and transcription management.
  */
 class TranscriptionFragment : Fragment() {
+
+    @Inject
+    lateinit var speechRecognitionService: SpeechRecognitionService
+
+    @Inject
+    lateinit var translationRepository: TranslationRepository
+
+    @Inject
+    lateinit var translationHistoryRepository: TranslationHistoryRepository
     
     override fun onAttach(context: android.content.Context) {
         AndroidSupportInjection.inject(this)

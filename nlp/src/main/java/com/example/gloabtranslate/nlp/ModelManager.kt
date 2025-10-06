@@ -28,8 +28,9 @@ import kotlin.coroutines.resumeWithException
 /**
  * Comprehensive model download management system that handles
  * model downloads, installation, updates, removal, and integrity validation.
+ * Now properly designed for dependency injection instead of singleton pattern.
  */
-class ModelManager private constructor(
+class ModelManager(
     private val context: Context
 ) {
     
@@ -44,15 +45,6 @@ class ModelManager private constructor(
         private const val MAX_CONCURRENT_DOWNLOADS = 3
         private const val RETRY_ATTEMPTS = 3
         private const val RETRY_DELAY_MS = 2000L
-        
-        @Volatile
-        private var INSTANCE: ModelManager? = null
-        
-        fun getInstance(context: Context): ModelManager {
-            return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: ModelManager(context.applicationContext).also { INSTANCE = it }
-            }
-        }
     }
     
     // HTTP client for downloads
@@ -1044,13 +1036,40 @@ class ModelManager private constructor(
      * Cleanup resources
      */
     fun cleanup() {
-        scope.cancel() // Cancels all coroutines started in this scope
-        activeDownloads.values.forEach { it.job.cancel() } // Explicitly cancel each job
-        activeDownloads.clear()
-        synchronized(downloadQueue) {
-            downloadQueue.clear()
+        try {
+            // Cancel all coroutines
+            scope.cancel("ModelManager cleanup")
+            
+            // Cancel active downloads
+            activeDownloads.values.forEach { it.job.cancel() }
+            activeDownloads.clear()
+            
+            // Clear download queue
+            synchronized(downloadQueue) {
+                downloadQueue.clear()
+            }
+            
+            // Close HTTP client and release its resources
+            try {
+                httpClient.dispatcher().cancelAll()
+                httpClient.connectionPool().evictAll()
+            } catch (e: Exception) {
+                Log.w(TAG, "Error closing HTTP client", e)
+            }
+            
+            Log.d(TAG, "ModelManager cleaned up successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during ModelManager cleanup", e)
         }
-        Log.d(TAG, "ModelManager cleaned up.")
+    }
+    
+    /**
+     * Destroy instance and release all resources
+     * Called by DI framework when singleton is being disposed
+     */
+    fun destroy() {
+        cleanup()
+        Log.d(TAG, "ModelManager instance destroyed")
     }
 
     private suspend fun <T> Task<T>.await(): T = suspendCancellableCoroutine { continuation ->

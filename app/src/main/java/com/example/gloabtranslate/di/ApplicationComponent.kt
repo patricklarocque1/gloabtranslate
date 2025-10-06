@@ -7,6 +7,7 @@ import com.example.gloabtranslate.di.modules.AppModule
 import com.example.gloabtranslate.di.modules.CoreModule
 import com.example.gloabtranslate.di.modules.FragmentModule
 import com.example.gloabtranslate.di.modules.NlpModule
+import com.example.gloabtranslate.di.modules.ServiceModule
 import com.example.gloabtranslate.di.modules.SpeechModule
 import com.example.gloabtranslate.di.modules.TtsModule
 import dagger.BindsInstance
@@ -30,6 +31,7 @@ import javax.inject.Singleton
         CoreModule::class,
         FragmentModule::class,
         NlpModule::class,
+        ServiceModule::class,
         SpeechModule::class,
         TtsModule::class
     ]

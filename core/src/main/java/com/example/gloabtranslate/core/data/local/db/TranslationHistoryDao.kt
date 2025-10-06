@@ -4,7 +4,9 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RawQuery
 import androidx.room.Update
+import androidx.sqlite.db.SupportSQLiteQuery
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -12,6 +14,9 @@ interface TranslationHistoryDao {
 
     @Query("SELECT * FROM translation_history ORDER BY timestamp DESC")
     fun observeHistory(): Flow<List<TranslationHistoryEntity>>
+
+    @RawQuery(observedEntities = [TranslationHistoryEntity::class])
+    suspend fun getHistoryFiltered(query: SupportSQLiteQuery): List<TranslationHistoryEntity>
 
     @Query("SELECT * FROM translation_history ORDER BY timestamp DESC")
     suspend fun getHistory(): List<TranslationHistoryEntity>
@@ -39,6 +44,9 @@ interface TranslationHistoryDao {
 
     @Query("DELETE FROM translation_history")
     suspend fun clear(): Int
+
+    @Query("DELETE FROM translation_history WHERE timestamp < :threshold")
+    suspend fun deleteOlderThan(threshold: Long): Int
 
     @Query("SELECT COUNT(*) FROM translation_history")
     suspend fun count(): Long

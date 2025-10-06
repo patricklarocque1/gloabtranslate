@@ -113,11 +113,10 @@ android {
         buildConfig = true
         compose = true
     }
-    
+
     composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.compose.bom.get()
+        kotlinCompilerExtensionVersion = libs.versions.kotlinCompiler.get()
     }
-    buildToolsVersion = libs.versions.buildTools.get()
 
     // 16 KB page size alignment for native .so files
     packaging {
@@ -190,20 +189,28 @@ dependencies {
     // Test dependencies (Unit tests)
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core)
-    testImplementation("org.mockito:mockito-inline:4.5.1") // For final classes/methods
+    testImplementation(libs.mockito.inline) // For final classes/methods
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
     testImplementation(libs.kotlin.test.junit) // For kotlin.test assertions
-    testImplementation("io.mockk:mockk:1.13.8") // MockK for Kotlin testing
+    testImplementation(libs.mockk) // MockK for Kotlin testing
+    testImplementation(libs.truth) // Google Truth for assertions
+    testImplementation(libs.hamcrest) // Hamcrest matchers
 
     // AndroidTest dependencies (Instrumented tests)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.espresso.idling.resource)
     androidTestImplementation(libs.androidx.uiautomator)
     androidTestImplementation(libs.mockito.android) // For instrumented tests needing Mockito
+    androidTestImplementation(libs.mockk) // MockK for Android tests
     androidTestImplementation(libs.test.rules)
     androidTestImplementation(libs.test.runner)
+    androidTestImplementation(libs.truth) // Google Truth for assertions
+    androidTestImplementation(platform(libs.compose.bom))
+    androidTestImplementation(libs.compose.ui.test.junit4)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
 
     // Dagger dependencies
     implementation(libs.dagger)

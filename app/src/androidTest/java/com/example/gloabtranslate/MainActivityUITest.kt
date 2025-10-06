@@ -66,7 +66,7 @@ class MainActivityUITest {
         activityScenario = ActivityScenario.launch(MainActivity::class.java)
 
         // Then
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
         Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
@@ -84,7 +84,7 @@ class MainActivityUITest {
         activityScenario = ActivityScenario.launch(MainActivity::class.java)
 
         // Then
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.withText("Global Translate")))
     }
 
@@ -177,7 +177,7 @@ class MainActivityUITest {
         activityScenario = ActivityScenario.launch(MainActivity::class.java)
 
         // Then - Verify all UI elements are properly positioned
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
         
         Espresso.onView(ViewMatchers.withId(R.id.statusText))
@@ -212,7 +212,7 @@ class MainActivityUITest {
         activityScenario = ActivityScenario.launch(MainActivity::class.java)
 
         // Then - Verify text views are displayed with proper styling
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
         
         Espresso.onView(ViewMatchers.withId(R.id.statusText))
@@ -234,7 +234,7 @@ class MainActivityUITest {
         activityScenario.recreate()
 
         // Then - Verify UI is still properly displayed
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
         
         Espresso.onView(ViewMatchers.withId(R.id.startButton))

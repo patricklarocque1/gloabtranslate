@@ -17,6 +17,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.gloabtranslate.core.data.config.ConfigurationManager
 import com.example.gloabtranslate.core.data.config.ThemeConfig
 import com.example.gloabtranslate.service.LiveTranslateService
+import com.example.gloabtranslate.service.ServiceCoordinator
 import dagger.android.AndroidInjection
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasAndroidInjector
@@ -31,12 +32,22 @@ class MainActivity : AppCompatActivity(), HasAndroidInjector {
     @Inject
     lateinit var androidInjector: DispatchingAndroidInjector<Any>
 
+    // Inject configuration manager instead of using singleton accessor
+    @Inject
+    lateinit var configurationManager: ConfigurationManager
+
+    @Inject
+    lateinit var serviceCoordinator: ServiceCoordinator
+    @javax.inject.Inject lateinit var errorRecoverySystem: com.example.gloabtranslate.core.error.ErrorRecoverySystem
+
     private lateinit var liveTranslateService: LiveTranslateService
     private var serviceBound = false
 
     private val serviceStateListeners = mutableSetOf<ServiceStateListener>()
 
     private var themeObserverJob: Job? = null
+    private var uiBehaviorJob: Job? = null
+    @javax.inject.Inject lateinit var uiBehaviorController: com.example.gloabtranslate.ui.uibehavior.UiBehaviorController
     private var appliedNightMode: Int? = null
 
     private val requestPermissionLauncher = registerForActivityResult(
@@ -56,7 +67,22 @@ class MainActivity : AppCompatActivity(), HasAndroidInjector {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        toolbar.inflateMenu(R.menu.main_overflow)
+        toolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.menu_diagnostics -> {
+                    startActivity(android.content.Intent(this, com.example.gloabtranslate.ui.debug.DiagnosticsActivity::class.java))
+                    true
+                }
+                else -> false
+            }
+        }
+
         startThemeObserver()
+        startUiBehaviorObserver()
+        startHealthIndicator()
         setupNavigation()
         checkPermissionsAndStartService()
     }
@@ -66,10 +92,9 @@ class MainActivity : AppCompatActivity(), HasAndroidInjector {
     private fun applyThemeFromPreferences(initial: Boolean = false) {
         val (mode, style) = runBlocking {
             runCatching {
-                val configurationManager = ConfigurationManager.getInstance(this@MainActivity)
                 val themeConfig = configurationManager.currentThemeConfig()
                 resolveNightMode(themeConfig) to resolveThemeStyle(themeConfig)
-            }.getOrElse { AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM to R.style.Theme_Gloabtranslate }
+            }.getOrElse { AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM to R.style.Theme_Gloabtranslate_NoActionBar }
         }
         appliedNightMode = mode
         AppCompatDelegate.setDefaultNightMode(mode)
@@ -80,7 +105,6 @@ class MainActivity : AppCompatActivity(), HasAndroidInjector {
 
 
     private fun startThemeObserver() {
-        val configurationManager = ConfigurationManager.getInstance(this)
         themeObserverJob?.cancel()
         themeObserverJob = lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -94,6 +118,33 @@ class MainActivity : AppCompatActivity(), HasAndroidInjector {
                 }
             }
         }
+    }
+
+    private fun startUiBehaviorObserver() {
+        uiBehaviorJob?.cancel()
+        uiBehaviorController.start()
+        uiBehaviorJob = lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // Poll lightweight (controller already collects) every 500ms; could be replaced with callback if needed
+                while (true) {
+                    val state = uiBehaviorController.currentState()
+                    applyFontScale(state.fontScale)
+                    kotlinx.coroutines.delay(500)
+                }
+            }
+        }
+    }
+
+    private var lastFontScale: Float = 1.0f
+    private fun applyFontScale(scale: Float) {
+        if (kotlin.math.abs(scale - lastFontScale) < 0.01f) return
+        lastFontScale = scale
+        val configuration = resources.configuration
+        if (configuration.fontScale == scale) return
+        configuration.fontScale = scale
+        @Suppress("DEPRECATION")
+        resources.updateConfiguration(configuration, resources.displayMetrics)
+        // NOTE: For full activity-wide refresh: recreate() could be called, but we avoid jank; rely on views respecting scaled density.
     }
 
     private fun resolveNightMode(themeConfig: ThemeConfig): Int {
@@ -147,11 +198,8 @@ class MainActivity : AppCompatActivity(), HasAndroidInjector {
 
     private fun startLiveTranslationService() {
         val serviceIntent = Intent(this, LiveTranslateService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(serviceIntent)
-        } else {
-            startService(serviceIntent)
-        }
+        // Since minSdk is 34 (API 34+), we always use startForegroundService
+        startForegroundService(serviceIntent)
 
         bindService(serviceIntent, serviceConnection, BIND_AUTO_CREATE)
     }
@@ -212,6 +260,43 @@ class MainActivity : AppCompatActivity(), HasAndroidInjector {
 
     private fun notifyServiceBoundChanged() {
         serviceStateListeners.forEach { it.onServiceStateChanged(serviceBound) }
+    }
+
+    private fun startHealthIndicator() {
+        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                serviceCoordinator.systemHealth.collectLatest { health ->
+                    val (label, colorRes) = when (health) {
+                        ServiceCoordinator.SystemHealth.HEALTHY -> "Healthy" to android.R.color.holo_green_light
+                        ServiceCoordinator.SystemHealth.DEGRADED -> "Degraded" to android.R.color.holo_orange_light
+                        ServiceCoordinator.SystemHealth.CRITICAL -> "Critical" to android.R.color.holo_red_light
+                        ServiceCoordinator.SystemHealth.UNKNOWN -> "Starting..." to android.R.color.darker_gray
+                    }
+                    // Preserve any existing breaker indicator when updating base health label
+                    val existing = toolbar.subtitle?.toString() ?: ""
+                    val hadBreaker = existing.contains("Breakers Open")
+                    toolbar.subtitle = if (hadBreaker) "$label | Breakers Open" else label
+                    toolbar.setSubtitleTextColor(ContextCompat.getColor(this@MainActivity, colorRes))
+                }
+            }
+        }
+        // Circuit breaker indicator collector
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                errorRecoverySystem.circuitBreakerStates.collectLatest { breakers ->
+                    val anyOpen = breakers.any { it.value.isOpen }
+                    val current = toolbar.subtitle?.toString() ?: ""
+                    val base = current.replace(" | Breakers Open", "").replace("Breakers Open", "").trim()
+                    toolbar.subtitle = when {
+                        anyOpen && base.isNotBlank() -> "$base | Breakers Open"
+                        anyOpen && base.isBlank() -> "Breakers Open"
+                        !anyOpen -> base
+                        else -> base
+                    }
+                }
+            }
+        }
     }
 
     interface ServiceStateListener {

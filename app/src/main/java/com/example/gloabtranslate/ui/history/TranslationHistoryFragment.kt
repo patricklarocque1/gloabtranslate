@@ -659,7 +659,7 @@ class TranslationHistoryFragment : Fragment() {
     
     private fun updateToolbarForSelectionMode() {
         (activity as? androidx.appcompat.app.AppCompatActivity)?.supportActionBar?.apply {
-            title = getString(R.string.selected_items, selectedItems.size)
+            title = resources.getQuantityString(R.plurals.selected_items, selectedItems.size, selectedItems.size)
         }
     }
     

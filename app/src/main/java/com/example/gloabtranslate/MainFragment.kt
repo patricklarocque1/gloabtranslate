@@ -8,6 +8,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.example.gloabtranslate.service.LiveTranslateService
 import dagger.android.support.AndroidSupportInjection
 import javax.inject.Inject
 
@@ -17,7 +18,9 @@ import javax.inject.Inject
  */
 class MainFragment : Fragment() {
 
-    // Dagger injection will be handled by the ActivityModule
+    // Service access through MainActivity
+    private val liveTranslateService: LiveTranslateService?
+        get() = (activity as? MainActivity)?.getLiveTranslateService()
 
     // UI elements
     private lateinit var statusText: TextView

@@ -78,16 +78,15 @@ class RecognizerAvailabilityManagerTest {
         mockkStatic(GoogleApiAvailability::class)
         mockkStatic(LanguageIdentification::class)
         mockkStatic(Translation::class)
-        mockkObject(ModelManager.Companion)
+    // Legacy companion getInstance not used; direct injection by reflection
         
         every { GoogleApiAvailability.getInstance() } returns mockGoogleApiAvailability
         every { LanguageIdentification.getClient() } returns mockLanguageIdentifier
         every { Translation.getClient(any<TranslatorOptions>()) } returns mockTranslator
-        every { ModelManager.getInstance(mockContext) } returns mockModelManager
         coEvery { mockModelManager.ensureLanguagePairAvailable(any(), any(), any()) } just Runs
         every { mockTranslator.downloadModelIfNeeded(any()) } returns createSuccessTask(null)
         
-        availabilityManager = RecognizerAvailabilityManager(mockContext)
+        availabilityManager = RecognizerAvailabilityManager(mockContext, mockModelManager)
     }
 
     @After

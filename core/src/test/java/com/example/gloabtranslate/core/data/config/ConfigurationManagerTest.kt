@@ -29,7 +29,7 @@ class ConfigurationManagerTest {
             preferencesManager.initialize()
             preferencesManager.resetPreferences()
         }
-        configurationManager = ConfigurationManager.getInstance(context)
+    configurationManager = ConfigurationManager(preferencesManager)
     }
 
     @After

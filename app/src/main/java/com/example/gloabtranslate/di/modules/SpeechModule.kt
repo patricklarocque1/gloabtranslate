@@ -1,11 +1,13 @@
 package com.example.gloabtranslate.di.modules
 
 import android.content.Context
+import com.example.gloabtranslate.core.data.config.ConfigurationManager
 import com.example.gloabtranslate.speech.AudioConfig
 import com.example.gloabtranslate.speech.AudioFilter
 import com.example.gloabtranslate.speech.AudioProcessor
 import com.example.gloabtranslate.speech.AudioQualityMonitor
 import com.example.gloabtranslate.speech.AudioRecorder
+import com.example.gloabtranslate.core.logging.DebugLogger
 import com.example.gloabtranslate.speech.AudioSessionManager
 import com.example.gloabtranslate.speech.memory.AudioBufferManager
 import com.example.gloabtranslate.speech.optimization.AudioOptimizer
@@ -34,8 +36,8 @@ object SpeechModule {
 
     @Provides
     @Singleton
-    fun provideAudioProcessor(context: Context): AudioProcessor {
-        return AudioProcessor(context)
+    fun provideAudioProcessor(context: Context, configurationManager: ConfigurationManager): AudioProcessor {
+        return AudioProcessor(context, configurationManager)
     }
 
     @Provides
@@ -46,8 +48,8 @@ object SpeechModule {
 
     @Provides
     @Singleton
-    fun provideAudioRecorder(context: Context): AudioRecorder {
-        return AudioRecorder(context)
+    fun provideAudioRecorder(context: Context, configurationManager: ConfigurationManager, debugLogger: DebugLogger): AudioRecorder {
+        return AudioRecorder(context, configurationManager, debugLogger)
     }
 
     @Provides
