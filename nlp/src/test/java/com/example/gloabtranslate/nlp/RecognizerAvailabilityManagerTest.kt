@@ -4,8 +4,11 @@ import android.content.Context
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.OnSuccessListener
+import com.google.android.gms.tasks.OnFailureListener
 import com.google.mlkit.common.MlKitException
 import com.google.mlkit.nl.languageid.LanguageIdentification
+import com.google.mlkit.nl.languageid.LanguageIdentifier
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.Translator
 import com.google.mlkit.nl.translate.TranslatorOptions
@@ -19,19 +22,46 @@ import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [28])
 class RecognizerAvailabilityManagerTest {
 
     private lateinit var mockContext: Context
 
     private lateinit var mockGoogleApiAvailability: GoogleApiAvailability
-    private lateinit var mockLanguageIdentifier: LanguageIdentification
+    private lateinit var mockLanguageIdentifier: LanguageIdentifier
     private lateinit var mockTranslator: Translator
     private lateinit var mockModelManager: ModelManager
 
     private lateinit var availabilityManager: RecognizerAvailabilityManager
     private val testDispatcher = UnconfinedTestDispatcher()
+
+    // Helper method to create mock Task with success callback
+    private fun <T> createSuccessTask(result: T): Task<T> {
+        return mockk<Task<T>>(relaxed = true) {
+            every { addOnSuccessListener(any<OnSuccessListener<T>>()) } answers {
+                firstArg<OnSuccessListener<T>>().onSuccess(result)
+                this@mockk
+            }
+            every { addOnFailureListener(any<OnFailureListener>()) } returns this@mockk
+        }
+    }
+
+    // Helper method to create mock Task with failure callback
+    private fun <T> createFailureTask(exception: Exception): Task<T> {
+        return mockk<Task<T>>(relaxed = true) {
+            every { addOnSuccessListener(any<OnSuccessListener<T>>()) } returns this@mockk
+            every { addOnFailureListener(any<OnFailureListener>()) } answers {
+                firstArg<OnFailureListener>().onFailure(exception)
+                this@mockk
+            }
+        }
+    }
 
     @Before
     fun setUp() {
@@ -48,16 +78,15 @@ class RecognizerAvailabilityManagerTest {
         mockkStatic(GoogleApiAvailability::class)
         mockkStatic(LanguageIdentification::class)
         mockkStatic(Translation::class)
-        mockkObject(ModelManager.Companion)
+    // Legacy companion getInstance not used; direct injection by reflection
         
         every { GoogleApiAvailability.getInstance() } returns mockGoogleApiAvailability
         every { LanguageIdentification.getClient() } returns mockLanguageIdentifier
         every { Translation.getClient(any<TranslatorOptions>()) } returns mockTranslator
-        every { ModelManager.getInstance(mockContext) } returns mockModelManager
         coEvery { mockModelManager.ensureLanguagePairAvailable(any(), any(), any()) } just Runs
-        every { mockTranslator.downloadModelIfNeeded(any()) } answers { successfulVoidTask() }
+        every { mockTranslator.downloadModelIfNeeded(any()) } returns createSuccessTask(null)
         
-        availabilityManager = RecognizerAvailabilityManager(mockContext)
+        availabilityManager = RecognizerAvailabilityManager(mockContext, mockModelManager)
     }
 
     @After
@@ -122,13 +151,7 @@ class RecognizerAvailabilityManagerTest {
     @Test
     fun `checkOnDeviceLanguageIdAvailability should return true when language ID works`() = runTest {
         // Given
-        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns mockk {
-            every { addOnSuccessListener(any()) } answers {
-                firstArg<(String) -> Unit>().invoke("en")
-                this
-            }
-            every { addOnFailureListener(any()) } returns this
-        }
+        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns createSuccessTask("en")
 
         // When
         val result = availabilityManager.checkOnDeviceLanguageIdAvailability()
@@ -140,13 +163,7 @@ class RecognizerAvailabilityManagerTest {
     @Test
     fun `checkOnDeviceLanguageIdAvailability should return false when language ID fails`() = runTest {
         // Given
-        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns mockk {
-            every { addOnSuccessListener(any()) } returns this
-            every { addOnFailureListener(any()) } answers {
-                firstArg<(Exception) -> Unit>().invoke(RuntimeException("Test error"))
-                this
-            }
-        }
+        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns createFailureTask(RuntimeException("Test error"))
 
         // When
         val result = availabilityManager.checkOnDeviceLanguageIdAvailability()
@@ -170,13 +187,7 @@ class RecognizerAvailabilityManagerTest {
     @Test
     fun `checkOnDeviceTranslationAvailability should return true when translation works`() = runTest {
         // Given
-        every { mockTranslator.translate("Hello") } returns mockk {
-            every { addOnSuccessListener(any()) } answers {
-                firstArg<(String) -> Unit>().invoke("Hola")
-                this
-            }
-            every { addOnFailureListener(any()) } returns this
-        }
+        every { mockTranslator.translate("Hello") } returns createSuccessTask("Hola")
 
         // When
         val result = availabilityManager.checkOnDeviceTranslationAvailability("en", "es")
@@ -188,13 +199,7 @@ class RecognizerAvailabilityManagerTest {
     @Test
     fun `checkOnDeviceTranslationAvailability should return false when translation fails`() = runTest {
         // Given
-        every { mockTranslator.translate("Hello") } returns mockk {
-            every { addOnSuccessListener(any()) } returns this
-            every { addOnFailureListener(any()) } answers {
-                firstArg<(Exception) -> Unit>().invoke(RuntimeException("Test error"))
-                this
-            }
-        }
+        every { mockTranslator.translate("Hello") } returns createFailureTask(RuntimeException("Test error"))
 
         // When
         val result = availabilityManager.checkOnDeviceTranslationAvailability("en", "es")
@@ -247,13 +252,7 @@ class RecognizerAvailabilityManagerTest {
         // Given
         every { mockGoogleApiAvailability.isGooglePlayServicesAvailable(mockContext) } returns 
             ConnectionResult.SUCCESS
-        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns mockk {
-            every { addOnSuccessListener(any()) } returns this
-            every { addOnFailureListener(any()) } answers {
-                firstArg<(Exception) -> Unit>().invoke(RuntimeException("Test error"))
-                this
-            }
-        }
+        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns createFailureTask(RuntimeException("Test error"))
 
         // When
         val result = availabilityManager.determineRecognitionCapability()
@@ -267,34 +266,9 @@ class RecognizerAvailabilityManagerTest {
         // Given
         every { mockGoogleApiAvailability.isGooglePlayServicesAvailable(mockContext) } returns 
             ConnectionResult.SUCCESS
-        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns mockk {
-            every { addOnSuccessListener(any()) } answers {
-                firstArg<(String) -> Unit>().invoke("en")
-                this
-            }
-            every { addOnFailureListener(any()) } returns this
-        }
-        every { mockTranslator.downloadModelIfNeeded(any()) } returns mockk {
-            every { addOnSuccessListener(any()) } answers {
-                firstArg<() -> Unit>().invoke()
-                this
-            }
-            every { addOnFailureListener(any()) } returns this
-        }
-        every { mockTranslator.downloadModelIfNeeded(any()) } returns mockk {
-            every { addOnSuccessListener(any()) } answers {
-                firstArg<() -> Unit>().invoke()
-                this
-            }
-            every { addOnFailureListener(any()) } returns this
-        }
-        every { mockTranslator.translate("Hello") } returns mockk {
-            every { addOnSuccessListener(any()) } answers {
-                firstArg<(String) -> Unit>().invoke("Hola")
-                this
-            }
-            every { addOnFailureListener(any()) } returns this
-        }
+        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns createSuccessTask("en")
+        every { mockTranslator.downloadModelIfNeeded(any()) } returns createSuccessTask(null)
+        every { mockTranslator.translate("Hello") } returns createSuccessTask("Hola")
 
         // When
         val result = availabilityManager.determineRecognitionCapability()
@@ -308,20 +282,8 @@ class RecognizerAvailabilityManagerTest {
         // Given
         every { mockGoogleApiAvailability.isGooglePlayServicesAvailable(mockContext) } returns 
             ConnectionResult.SUCCESS
-        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns mockk {
-            every { addOnSuccessListener(any()) } answers {
-                firstArg<(String) -> Unit>().invoke("en")
-                this
-            }
-            every { addOnFailureListener(any()) } returns this
-        }
-        every { mockTranslator.translate("Hello") } returns mockk {
-            every { addOnSuccessListener(any()) } returns this
-            every { addOnFailureListener(any()) } answers {
-                firstArg<(Exception) -> Unit>().invoke(RuntimeException("Test error"))
-                this
-            }
-        }
+        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns createSuccessTask("en")
+        every { mockTranslator.translate("Hello") } returns createFailureTask(RuntimeException("Test error"))
 
         // When
         val result = availabilityManager.determineRecognitionCapability()
@@ -335,27 +297,9 @@ class RecognizerAvailabilityManagerTest {
         // Given
         every { mockGoogleApiAvailability.isGooglePlayServicesAvailable(mockContext) } returns 
             ConnectionResult.SUCCESS
-        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns mockk {
-            every { addOnSuccessListener(any()) } answers {
-                firstArg<(String) -> Unit>().invoke("en")
-                this
-            }
-            every { addOnFailureListener(any()) } returns this
-        }
-        every { mockTranslator.downloadModelIfNeeded(any()) } returns mockk {
-            every { addOnSuccessListener(any()) } answers {
-                firstArg<() -> Unit>().invoke()
-                this
-            }
-            every { addOnFailureListener(any()) } returns this
-        }
-        every { mockTranslator.translate("Hello") } returns mockk {
-            every { addOnSuccessListener(any()) } answers {
-                firstArg<(String) -> Unit>().invoke("Hola")
-                this
-            }
-            every { addOnFailureListener(any()) } returns this
-        }
+        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns createSuccessTask("en")
+        every { mockTranslator.downloadModelIfNeeded(any()) } returns createSuccessTask(null)
+        every { mockTranslator.translate("Hello") } returns createSuccessTask("Hola")
 
         // When
         availabilityManager.determineRecognitionCapability()
@@ -370,13 +314,7 @@ class RecognizerAvailabilityManagerTest {
         // Given
         every { mockGoogleApiAvailability.isGooglePlayServicesAvailable(mockContext) } returns 
             ConnectionResult.SUCCESS
-        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns mockk {
-            every { addOnSuccessListener(any()) } returns this
-            every { addOnFailureListener(any()) } answers {
-                firstArg<(Exception) -> Unit>().invoke(RuntimeException("Test error"))
-                this
-            }
-        }
+        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns createFailureTask(RuntimeException("Test error"))
 
         // When
         availabilityManager.determineRecognitionCapability()
@@ -391,27 +329,9 @@ class RecognizerAvailabilityManagerTest {
         // Given
         every { mockGoogleApiAvailability.isGooglePlayServicesAvailable(mockContext) } returns 
             ConnectionResult.SUCCESS
-        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns mockk {
-            every { addOnSuccessListener(any()) } answers {
-                firstArg<(String) -> Unit>().invoke("en")
-                this
-            }
-            every { addOnFailureListener(any()) } returns this
-        }
-        every { mockTranslator.downloadModelIfNeeded(any()) } returns mockk {
-            every { addOnSuccessListener(any()) } answers {
-                firstArg<() -> Unit>().invoke()
-                this
-            }
-            every { addOnFailureListener(any()) } returns this
-        }
-        every { mockTranslator.translate("Hello") } returns mockk {
-            every { addOnSuccessListener(any()) } answers {
-                firstArg<(String) -> Unit>().invoke("Hola")
-                this
-            }
-            every { addOnFailureListener(any()) } returns this
-        }
+        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns createSuccessTask("en")
+        every { mockTranslator.downloadModelIfNeeded(any()) } returns createSuccessTask(null)
+        every { mockTranslator.translate("Hello") } returns createSuccessTask("Hola")
 
         // When
         availabilityManager.determineRecognitionCapability()
@@ -426,13 +346,7 @@ class RecognizerAvailabilityManagerTest {
         // Given
         every { mockGoogleApiAvailability.isGooglePlayServicesAvailable(mockContext) } returns 
             ConnectionResult.SUCCESS
-        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns mockk {
-            every { addOnSuccessListener(any()) } returns this
-            every { addOnFailureListener(any()) } answers {
-                firstArg<(Exception) -> Unit>().invoke(RuntimeException("Test error"))
-                this
-            }
-        }
+        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns createFailureTask(RuntimeException("Test error"))
 
         // When
         availabilityManager.determineRecognitionCapability()
@@ -473,27 +387,9 @@ class RecognizerAvailabilityManagerTest {
         // Given
         every { mockGoogleApiAvailability.isGooglePlayServicesAvailable(mockContext) } returns 
             ConnectionResult.SUCCESS
-        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns mockk {
-            every { addOnSuccessListener(any()) } answers {
-                firstArg<(String) -> Unit>().invoke("en")
-                this
-            }
-            every { addOnFailureListener(any()) } returns this
-        }
-        every { mockTranslator.downloadModelIfNeeded(any()) } returns mockk {
-            every { addOnSuccessListener(any()) } answers {
-                firstArg<() -> Unit>().invoke()
-                this
-            }
-            every { addOnFailureListener(any()) } returns this
-        }
-        every { mockTranslator.translate("Hello") } returns mockk {
-            every { addOnSuccessListener(any()) } answers {
-                firstArg<(String) -> Unit>().invoke("Hola")
-                this
-            }
-            every { addOnFailureListener(any()) } returns this
-        }
+        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns createSuccessTask("en")
+        every { mockTranslator.downloadModelIfNeeded(any()) } returns createSuccessTask(null)
+        every { mockTranslator.translate("Hello") } returns createSuccessTask("Hola")
 
         // When
         availabilityManager.determineRecognitionCapability()
@@ -508,13 +404,7 @@ class RecognizerAvailabilityManagerTest {
         // Given
         every { mockGoogleApiAvailability.isGooglePlayServicesAvailable(mockContext) } returns 
             ConnectionResult.SUCCESS
-        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns mockk {
-            every { addOnSuccessListener(any()) } returns this
-            every { addOnFailureListener(any()) } answers {
-                firstArg<(Exception) -> Unit>().invoke(RuntimeException("Test error"))
-                this
-            }
-        }
+        every { mockLanguageIdentifier.identifyLanguage("Hello") } returns createFailureTask(RuntimeException("Test error"))
 
         // When
         availabilityManager.determineRecognitionCapability()
@@ -550,21 +440,5 @@ class RecognizerAvailabilityManagerTest {
         assertEquals("Please wait while we check availability...", action)
     }
 
-    private fun successfulVoidTask(): Task<Void> = mockk {
-        every { addOnSuccessListener(any()) } answers {
-            firstArg<() -> Unit>().invoke()
-            this
-        }
-        every { addOnFailureListener(any()) } returns this
-        every { addOnCanceledListener(any()) } returns this
-    }
 
-    private fun failingVoidTask(error: Exception): Task<Void> = mockk {
-        every { addOnSuccessListener(any()) } returns this
-        every { addOnFailureListener(any()) } answers {
-            firstArg<(Exception) -> Unit>().invoke(error)
-            this
-        }
-        every { addOnCanceledListener(any()) } returns this
-    }
 }

@@ -7,16 +7,21 @@ plugins {
 
 android {
     namespace = "com.example.gloabtranslate.core"
-    compileSdk = 36
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 34
+        minSdk = libs.versions.minSdk.get().toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
 
     testOptions {
         unitTests.isIncludeAndroidResources = true
+        targetSdk = libs.versions.targetSdk.get().toInt()
+    }
+
+    lint {
+        targetSdk = libs.versions.targetSdk.get().toInt()
     }
 
     buildFeatures {
@@ -34,8 +39,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     packaging {
@@ -50,12 +55,15 @@ android {
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 dependencies {
     // Keep :core headless (no UI libs)
     implementation(libs.androidx.core.ktx)
+
+    // Dagger for dependency injection (@Inject, @Singleton usage in core helpers like DebugLogger)
+    implementation(libs.dagger)
 
     // Kotlin Coroutines - use api() since core exposes coroutine types
     api(libs.kotlinx.coroutines.core)
@@ -78,12 +86,24 @@ dependencies {
     // Work Manager for background tasks
     implementation(libs.work.runtime.ktx)
 
+    // Unit test dependencies
     testImplementation(libs.junit)
-    testImplementation(libs.kotlin.test.junit) // Updated to use alias
-    testImplementation(libs.robolectric) // Added Robolectric
+    testImplementation(libs.kotlin.test.junit)
+    testImplementation(libs.robolectric)
     testImplementation(libs.room.testing)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.truth)
+    testImplementation(libs.hamcrest)
+    
+    // Android test dependencies
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.mockk)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.test.rules)
+    androidTestImplementation(libs.test.runner)
+    androidTestImplementation(libs.truth)
 }
 
 ksp {

@@ -61,3 +61,47 @@ All dependencies have been updated to their latest stable versions as confirmed 
 2. ⏳ Run `./gradlew :app:dependencies` to validate no conflicts
 3. ⏳ Run full test/build to ensure compatibility
 4. ⏳ Consider adding Gradle Versions Plugin for future dependency management
+
+---
+
+## Configuration Wiring Overview (2025-10 Update)
+
+User settings propagate through these layers:
+1. Settings UI (`SettingsActivity`) writes raw key/value pairs via `UserPreferencesManager`.
+2. `UserPreferencesManager.preferencesFlow` emits a map of all preferences.
+3. `ConfigurationManager` maps that flow into typed flows: `themeConfig`, `translationConfig`, `audioConfig`, `performanceConfig`, `uiConfig`, `privacyConfig`, `debugConfig`.
+4. Runtime consumers either:
+  - Collect the flow reactively (preferred) OR
+  - Snapshot via `current*Config()` suspend functions for one-off decisions.
+
+Reactive consumers (after this branch):
+* Theme: `MainActivity` collects `themeConfig`.
+* Translation: `TranslationPipeline` combines translation + performance.
+* Audio: `AudioRecordingService` now collects `audioConfig` and restarts on critical changes (sample rate, quality, noise reduction).
+* Performance: `ServiceCoordinator` observes `performanceConfig` and updates a dynamic startup timeout.
+
+Snapshot or indirect usage:
+* `resolveStartupTimeout()` still falls back to snapshot if no dynamic value yet.
+* Some initialization paths still call `current*Config()` for first-use decisions.
+
+Currently inactive settings (UI shown but inert):
+* UI: `fontSize`, `enableAnimations`, `enableHapticFeedback`.
+* Privacy: `enableDataCollection` (no telemetry pipeline), retention enforcement for `dataRetentionDays` not implemented.
+* Debug: `logLevel`, `enableDebugMode`, `enablePerformanceMonitoring`, `enableCrashDumps` (no central logger / monitoring backend yet).
+* Performance: `enableCaching`, `cacheSize`, `enableAutoCleanup`, `cleanupIntervalHours` (caching/cleanup subsystems TBD).
+
+Audio runtime update approach:
+* Service tracks last applied triplet (sampleRate, noiseReduction, quality) and performs a pause/resume restart as a placeholder until differential reconfigure API is added.
+
+Added tests:
+* `ServiceCoordinatorTest.dynamicStartupTimeoutAdjustsWhenPerformanceConfigChanges` validates dynamic timeout path.
+* `AudioRecordingServiceConfigUpdateTest` ensures service remains stable when audio prefs change mid-recording.
+
+Planned improvements:
+1. `UiBehaviorController` to actually apply font scale & animation toggles.
+2. Central logger honoring `debugConfig.logLevel` & debug flags.
+3. Translation result cache honoring `enableCaching` & `cacheSize`.
+4. Retention job for `dataRetentionDays`.
+5. Granular audio reconfiguration without full restart.
+
+This section documents current wiring to avoid confusion over settings that do not yet influence runtime behavior.

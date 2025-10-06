@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -37,6 +38,7 @@ class SpeechRecognitionService(
     }
     
     private var speechRecognizer: SpeechRecognizerAdapter? = null
+    private val serviceStatus = AtomicReference(ServiceStatus.UNINITIALIZED)
     
     /**
      * Result of a speech recognition operation
@@ -60,19 +62,33 @@ class SpeechRecognitionService(
     )
     
     /**
+     * Health status of the service
+     */
+    enum class ServiceStatus {
+        UNINITIALIZED,
+        INITIALIZING,
+        AVAILABLE,
+        UNAVAILABLE,
+        ERROR
+    }
+    
+    /**
      * Initializes the speech recognition service
      */
     suspend fun initialize(): Boolean = withContext(Dispatchers.IO) {
+        serviceStatus.set(ServiceStatus.INITIALIZING)
         try {
             if (!platform.hasRecordAudioPermission()) {
                 Log.w(TAG, "RECORD_AUDIO permission not granted")
                 Logger.w("RECORD_AUDIO permission not granted", TAG)
+                serviceStatus.set(ServiceStatus.ERROR)
                 return@withContext false
             }
 
             if (!platform.isRecognitionAvailable()) {
                 Log.w(TAG, "Speech recognition not available on this device")
                 Logger.w("Speech recognition not available on this device", TAG)
+                serviceStatus.set(ServiceStatus.UNAVAILABLE)
                 return@withContext false
             }
 
@@ -80,13 +96,20 @@ class SpeechRecognitionService(
 
             Log.d(TAG, "Speech recognition service initialized successfully")
             Logger.d("Speech recognition service initialized successfully", TAG)
+            serviceStatus.set(ServiceStatus.AVAILABLE)
             true
         } catch (e: Exception) {
             Log.e(TAG, "Failed to initialize speech recognition service", e)
             Logger.e("Failed to initialize speech recognition service", TAG, e)
+            serviceStatus.set(ServiceStatus.ERROR)
             false
         }
     }
+    
+    /**
+     * Gets the current health status of the service
+     */
+    fun getStatus(): ServiceStatus = serviceStatus.get()
     
     /**
      * Performs one-time speech recognition
@@ -95,10 +118,10 @@ class SpeechRecognitionService(
         withContext(Dispatchers.IO) {
             try {
                 val recognizer = speechRecognizer
-                if (recognizer == null) {
+                if (recognizer == null || serviceStatus.get() != ServiceStatus.AVAILABLE) {
                     return@withContext SpeechRecognitionResult(
                         success = false,
-                        error = "Speech recognition not initialized"
+                        error = "Speech recognition not initialized or unavailable"
                     )
                 }
                 
@@ -144,10 +167,10 @@ class SpeechRecognitionService(
     ): Flow<SpeechRecognitionResult> = callbackFlow {
         try {
             val recognizer = speechRecognizer
-            if (recognizer == null) {
+            if (recognizer == null || serviceStatus.get() != ServiceStatus.AVAILABLE) {
                 trySend(SpeechRecognitionResult(
                     success = false,
-                    error = "Speech recognition not initialized"
+                    error = "Speech recognition not initialized or unavailable"
                 ))
                 close()
                 return@callbackFlow
@@ -403,6 +426,7 @@ class SpeechRecognitionService(
     fun cleanup() {
         speechRecognizer?.destroy()
         speechRecognizer = null
+        serviceStatus.set(ServiceStatus.UNINITIALIZED)
     }
 }
 

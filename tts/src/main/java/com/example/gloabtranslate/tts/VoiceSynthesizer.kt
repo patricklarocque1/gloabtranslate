@@ -1,6 +1,7 @@
 package com.example.gloabtranslate.tts
 
 import android.content.Context
+import android.speech.tts.TextToSpeech
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -70,7 +71,6 @@ class VoiceSynthesizer(private val context: Context) {
         val requestId: String,
         val success: Boolean,
         val utteranceId: String? = null,
-        val duration: Long = 0L,
         val error: String? = null,
         val audioData: ByteArray? = null,
         val metadata: Map<String, Any> = emptyMap()
@@ -566,13 +566,12 @@ class VoiceSynthesizer(private val context: Context) {
                     )
                     
                     // Perform synthesis
-                    val ttsResult = ttsService.speak(processedText, ttsConfig, request.id)
+                    val ttsResult = ttsService.speak(processedText, TextToSpeech.QUEUE_ADD)
                     
                     val result = SynthesisResult(
                         requestId = request.id,
                         success = ttsResult.success,
                         utteranceId = ttsResult.utteranceId,
-                        duration = ttsResult.duration,
                         error = ttsResult.error
                     )
                     

@@ -11,6 +11,11 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
@@ -49,6 +54,16 @@ class UserPreferencesManager private constructor(private val context: Context) {
         prettyPrint = true
         ignoreUnknownKeys = true
         encodeDefaults = true
+    }
+
+    // Sanitizes arbitrary values so they can be safely serialized without requiring a kotlinx serializer
+    private fun sanitizeForStorage(value: Any?): Any? = when (value) {
+        null -> null
+        is String, is Int, is Long, is Float, is Double, is Boolean -> value
+        is Map<*, *> -> value.entries.associate { (k, v) -> k.toString() to sanitizeForStorage(v) }
+        is Iterable<*> -> value.map { sanitizeForStorage(it) }
+        is Array<*> -> value.map { sanitizeForStorage(it) }
+        else -> value.toString() // Fallback to string representation
     }
     
     // State management
@@ -429,14 +444,15 @@ class UserPreferencesManager private constructor(private val context: Context) {
                 val timestamp = System.currentTimeMillis()
                 val backupFile = File(backupDir, "preferences_backup_$timestamp.json")
                 
+                val sanitizedPreferences = preferencesCache.mapValues { sanitizeForStorage(it.value) }
                 val backupData = mapOf(
                     "version" to CURRENT_VERSION,
                     "timestamp" to timestamp,
-                    "preferences" to preferencesCache.toMap(),
+                    "preferences" to sanitizedPreferences,
                     "metadata" to mapOf(
                         "app_version" to getAppVersion(),
                         "device_model" to getDeviceModel(),
-                        "total_preferences" to preferencesCache.size
+                        "total_preferences" to sanitizedPreferences.size
                     )
                 )
                 
@@ -466,12 +482,36 @@ class UserPreferencesManager private constructor(private val context: Context) {
                 }
                 
                 val jsonString = backupFile.readText()
-                val backupData = json.decodeFromString<Map<String, Any>>(jsonString)
-                
-                val preferences = backupData["preferences"] as? Map<String, Any>?
-                if (preferences == null) {
-                    Log.e(TAG, "Invalid backup file format")
+                val rootElement: JsonElement = json.parseToJsonElement(jsonString)
+                val rootObj = rootElement as? JsonObject ?: run {
+                    Log.e(TAG, "Invalid backup root object")
                     return@withContext false
+                }
+                val preferencesElement = rootObj["preferences"]
+                val preferencesObj = preferencesElement as? JsonObject ?: run {
+                    Log.e(TAG, "Invalid backup preferences object")
+                    return@withContext false
+                }
+                val preferences: Map<String, Any?> = preferencesObj.mapValues { (_, je) ->
+                    when (je) {
+                        is JsonPrimitive -> {
+                            val text = je.content
+                            // Try to coerce into boolean/int/long/double in that order
+                            when {
+                                text.equals("true", ignoreCase = true) -> true
+                                text.equals("false", ignoreCase = true) -> false
+                                text.toLongOrNull() != null -> {
+                                    val l = text.toLong()
+                                    // If fits in Int range, store as Int
+                                    if (l in Int.MIN_VALUE..Int.MAX_VALUE) l.toInt() else l
+                                }
+                                text.toDoubleOrNull() != null -> text.toDouble()
+                                else -> text
+                            }
+                        }
+                        is JsonObject -> je.toString()
+                        else -> je.toString()
+                    }
                 }
                 
                 // Clear current preferences
@@ -479,8 +519,10 @@ class UserPreferencesManager private constructor(private val context: Context) {
                 
                 // Restore preferences
                 preferences.forEach { (key, value) ->
-                    preferencesCache[key] = value
-                    savePreferenceToStorage(key, value)
+                    if (value != null) {
+                        preferencesCache[key] = value
+                        savePreferenceToStorage(key, value)
+                    }
                 }
                 
                 updateFlows()
@@ -763,9 +805,14 @@ class UserPreferencesManager private constructor(private val context: Context) {
                 is Set<*> -> editor.putStringSet(key, value.filterIsInstance<String>().toSet())
                 null -> editor.remove(key)
                 else -> {
-                    // For complex types, serialize to JSON
-                    val jsonString = json.encodeToString(value)
-                    editor.putString(key, jsonString)
+                    // For complex types, attempt JSON serialization; fallback to toString
+                    val stored = try {
+                        json.encodeToString(value)
+                    } catch (ser: Exception) {
+                        Log.w(TAG, "Non-serializable preference value for $key (${value::class.java.simpleName}); storing toString()", ser)
+                        value.toString()
+                    }
+                    editor.putString(key, stored)
                 }
             }
             
@@ -790,8 +837,13 @@ class UserPreferencesManager private constructor(private val context: Context) {
                     is Float -> editor.putFloat(key, value)
                     is Set<*> -> editor.putStringSet(key, value.filterIsInstance<String>().toSet())
                     else -> {
-                        val jsonString = json.encodeToString(value)
-                        editor.putString(key, jsonString)
+                        val stored = try {
+                            json.encodeToString(value)
+                        } catch (ser: Exception) {
+                            Log.w(TAG, "Non-serializable preference value for $key (${value::class.java.simpleName}); storing toString()", ser)
+                            value.toString()
+                        }
+                        editor.putString(key, stored)
                     }
                 }
             }

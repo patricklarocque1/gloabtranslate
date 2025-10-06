@@ -2,11 +2,15 @@ package com.example.gloabtranslate.di.modules
 
 import android.content.Context
 import com.example.gloabtranslate.core.analytics.UserAnalytics
+import kotlinx.coroutines.flow.map
 import com.example.gloabtranslate.core.data.preferences.UserPreferencesManager
 import com.example.gloabtranslate.core.data.preferences.PermissionPreferences
 import com.example.gloabtranslate.core.data.persistence.ServiceStateManager
 import com.example.gloabtranslate.core.data.repository.TranslationHistoryRepository
 import com.example.gloabtranslate.core.data.repository.TranslationRepository
+import com.example.gloabtranslate.core.external.ExternalServiceStateReporter
+import com.example.gloabtranslate.core.external.ExternalServiceType
+import com.example.gloabtranslate.core.external.ExternalServiceStatus
 import com.example.gloabtranslate.core.error.ErrorHandler
 import com.example.gloabtranslate.core.error.ErrorRecovery
 import com.example.gloabtranslate.core.error.ErrorReporter
@@ -32,6 +36,58 @@ object CoreModule {
     fun provideUserPreferencesManager(context: Context): UserPreferencesManager {
         return UserPreferencesManager.getInstance(context)
     }
+    
+    @Provides
+    @Singleton
+    fun provideConfigurationManager(preferencesManager: UserPreferencesManager): com.example.gloabtranslate.core.data.config.ConfigurationManager {
+        return com.example.gloabtranslate.core.data.config.ConfigurationManager(preferencesManager)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDebugConfigProvider(configurationManager: com.example.gloabtranslate.core.data.config.ConfigurationManager): com.example.gloabtranslate.core.data.config.DebugConfigProvider {
+        return configurationManager
+    }
+    
+    @Provides
+    @Singleton
+    fun provideErrorRecoverySystem(): com.example.gloabtranslate.core.error.ErrorRecoverySystem {
+        return com.example.gloabtranslate.core.error.ErrorRecoverySystem()
+    }
+
+    @Provides
+    @Singleton
+    fun provideExternalServiceStateReporter(
+        serviceCoordinator: com.example.gloabtranslate.service.ServiceCoordinator
+    ): ExternalServiceStateReporter {
+        return object : ExternalServiceStateReporter {
+            override fun report(
+                type: ExternalServiceType,
+                status: ExternalServiceStatus,
+                error: String?,
+                metrics: Map<String, Any?>?
+            ) {
+                when (type) {
+                    ExternalServiceType.AUDIO_RECORDING -> {
+                        val mappedStatus = when (status) {
+                            ExternalServiceStatus.INITIALIZING -> com.example.gloabtranslate.service.ServiceCoordinator.ServiceStatus.INITIALIZING
+                            ExternalServiceStatus.READY -> com.example.gloabtranslate.service.ServiceCoordinator.ServiceStatus.READY
+                            ExternalServiceStatus.ERROR -> com.example.gloabtranslate.service.ServiceCoordinator.ServiceStatus.ERROR
+                            ExternalServiceStatus.STOPPED -> com.example.gloabtranslate.service.ServiceCoordinator.ServiceStatus.STOPPED
+                        }
+                        serviceCoordinator.reportExternalServiceState(
+                            com.example.gloabtranslate.service.ServiceCoordinator.ServiceType.AUDIO_RECORDING,
+                            mappedStatus,
+                            error
+                        )
+                        if (metrics != null) {
+                            serviceCoordinator.reportExternalServiceMetrics("AUDIO_RECORDING", metrics)
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     @Provides
     @Singleton
@@ -53,42 +109,73 @@ object CoreModule {
 
     @Provides
     @Singleton
-    fun provideTranslationRepository(): TranslationRepository {
+    fun provideTranslationRepository(
+        context: Context,
+        historyRepository: TranslationHistoryRepository,
+        translationPipeline: com.example.gloabtranslate.nlp.TranslationPipeline
+    ): TranslationRepository {
         return object : TranslationRepository {
+            // Use injected translation pipeline (constructed via DI with its dependencies)
+            
             override suspend fun translateText(text: String, sourceLanguage: String, targetLanguage: String): com.example.gloabtranslate.core.data.models.TranslationResult {
-                // TODO: Implement actual translation logic
-                return com.example.gloabtranslate.core.data.models.TranslationResult(
-                    success = false,
-                    originalText = text,
-                    translatedText = "Translation not implemented yet",
-                    sourceLanguage = sourceLanguage,
-                    targetLanguage = targetLanguage,
-                    confidence = 0.0f,
-                    isPartial = false,
-                    isOnDevice = false,
-                    timestamp = System.currentTimeMillis(),
-                    error = "Translation service not implemented"
-                )
+                return try {
+                    translationPipeline.processText(text, sourceLanguage, targetLanguage)
+                } catch (e: Exception) {
+                    com.example.gloabtranslate.core.data.models.TranslationResult(
+                        success = false,
+                        originalText = text,
+                        translatedText = "",
+                        sourceLanguage = sourceLanguage,
+                        targetLanguage = targetLanguage,
+                        confidence = 0.0f,
+                        isPartial = false,
+                        isOnDevice = false,
+                        timestamp = System.currentTimeMillis(),
+                        error = "Translation error: ${e.message}"
+                    )
+                }
             }
             
             override suspend fun identifyLanguage(text: String): String? {
-                return null
+                return try {
+                    // Use the translation pipeline with "auto" source to detect language
+                    // The pipeline will detect the language as part of the translation process
+                    val result = translationPipeline.processText(text, "auto", "en", isPartial = false)
+                    if (result.success) result.sourceLanguage else null
+                } catch (e: Exception) {
+                    null
+                }
             }
             
             override suspend fun getSupportedLanguages(): List<String> {
-                return emptyList()
+                return translationPipeline.getSupportedLanguages().map { it.code }
             }
             
             override fun getTranslationHistory(): kotlinx.coroutines.flow.Flow<List<com.example.gloabtranslate.core.data.models.TranslationResult>> {
-                return kotlinx.coroutines.flow.flowOf(emptyList())
+                return historyRepository.historyFlow.map { historyEntries ->
+                    historyEntries.map { entry ->
+                        com.example.gloabtranslate.core.data.models.TranslationResult(
+                            success = entry.success,
+                            originalText = entry.originalText,
+                            translatedText = entry.translatedText,
+                            sourceLanguage = entry.sourceLanguage,
+                            targetLanguage = entry.targetLanguage,
+                            confidence = entry.confidence ?: 0.0f,
+                            isPartial = entry.isPartial,
+                            isOnDevice = entry.isOnDevice,
+                            timestamp = entry.timestamp,
+                            error = entry.error
+                        )
+                    }
+                }
             }
             
             override suspend fun saveTranslationResult(result: com.example.gloabtranslate.core.data.models.TranslationResult) {
-                // TODO: Implement save logic
+                historyRepository.addTranslation(result)
             }
             
             override suspend fun clearHistory() {
-                // TODO: Implement clear logic
+                historyRepository.clearAllHistory()
             }
         }
     }

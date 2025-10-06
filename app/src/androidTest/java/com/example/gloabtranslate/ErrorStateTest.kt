@@ -25,9 +25,9 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 
 /**
  * UI tests for error states and error handling.
@@ -95,7 +95,7 @@ class ErrorStateTest {
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
         
         // Service should return a result (success or failure)
-        assertNotNull(result, "Translation should return a result even on error")
+        assertNotNull("Translation should return a result even on error", result)
     }
 
     @Test
@@ -105,14 +105,15 @@ class ErrorStateTest {
         speechService.initialize()
 
         // When - Try speech recognition with error conditions
-        val result = speechService.startListening()
+        val config = SpeechRecognitionService.RecognitionConfig(languageCode = "en-US")
+        val result = speechService.recognizeSpeech(config)
 
         // Then - Error should be handled gracefully
         Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
         
         // Service should return a result indicating success or failure
-        assertNotNull(result, "Speech recognition should return a result")
+        assertNotNull("Speech recognition should return a result", result)
     }
 
     @Test
@@ -129,7 +130,7 @@ class ErrorStateTest {
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
         
         // Service should return a result
-        assertNotNull(result, "TTS should return a result")
+        assertNotNull("TTS should return a result", result)
     }
 
     @Test
@@ -147,7 +148,7 @@ class ErrorStateTest {
         }
 
         // Then - UI should remain functional
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
         
         Espresso.onView(ViewMatchers.withId(R.id.startButton))
@@ -219,7 +220,7 @@ class ErrorStateTest {
         }
 
         // Then - All errors should be handled gracefully
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
     }
 
@@ -305,7 +306,7 @@ class ErrorStateTest {
         activityScenario.recreate()
 
         // Then - Error state should be handled properly
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
     }
 
@@ -347,7 +348,7 @@ class ErrorStateTest {
 
         // When - Error state occurs
         // Then - UI should remain accessible
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
         
         Espresso.onView(ViewMatchers.withId(R.id.startButton))
@@ -363,7 +364,7 @@ class ErrorStateTest {
         activityScenario.recreate()
 
         // Then - Error state should be handled properly
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
     }
 
@@ -376,6 +377,6 @@ class ErrorStateTest {
         activityScenario.close()
 
         // Then - Cleanup should occur without exceptions
-        assertTrue(true, "Error state cleanup should complete successfully")
+        assertTrue("Error state cleanup should complete successfully", true)
     }
 }

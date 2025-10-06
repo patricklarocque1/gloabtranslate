@@ -122,7 +122,12 @@ class TranslationResultFragment : Fragment(), TextToSpeech.OnInitListener {
         super.onCreate(savedInstanceState)
         
         // Extract arguments
-        translationResult = arguments?.getSerializable(ARG_TRANSLATION_RESULT) as? TranslationResult
+        translationResult = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            arguments?.getSerializable(ARG_TRANSLATION_RESULT, TranslationResult::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            arguments?.getSerializable(ARG_TRANSLATION_RESULT) as? TranslationResult
+        }
         sourceLanguage = arguments?.getString(ARG_SOURCE_LANGUAGE)
         targetLanguage = arguments?.getString(ARG_TARGET_LANGUAGE)
         

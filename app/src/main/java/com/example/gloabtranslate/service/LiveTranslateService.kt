@@ -19,16 +19,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.cancel
+import dagger.android.DaggerService
+import javax.inject.Inject
 
 /**
  * Foreground service for live translation functionality.
  * Handles continuous audio recording and translation processing.
  */
-class LiveTranslateService : Service() {
+class LiveTranslateService : DaggerService() {
 
     private val binder = LocalBinder()
     private var isRecording = false
-    private lateinit var recognitionService: RecognitionService
+    
+    @Inject
+    lateinit var recognitionService: RecognitionService
+    
+    @Inject  
+    lateinit var serviceCoordinator: ServiceCoordinator
+    
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     companion object {
@@ -184,13 +192,31 @@ class LiveTranslateService : Service() {
     private fun initializeRecognitionService() {
         serviceScope.launch {
             try {
-                recognitionService = RecognitionService(this@LiveTranslateService)
-                val result = recognitionService.initialize()
-                
-                if (result.success) {
-                    updateNotification("Recognition service ready - ${result.text}")
+                // Check if services are already ready via coordinator
+                if (serviceCoordinator.areCriticalServicesReady()) {
+                    updateNotification("Recognition service ready")
                 } else {
-                    updateNotification("Recognition service error - ${result.error}")
+                    updateNotification("Initializing services...")
+                    
+                    // Monitor service states
+                    serviceCoordinator.serviceStates.collect { states ->
+                        val recognitionState = states[ServiceCoordinator.ServiceType.RECOGNITION_SERVICE]
+                        
+                        when (recognitionState?.status) {
+                            ServiceCoordinator.ServiceStatus.READY -> {
+                                updateNotification("Recognition service ready")
+                            }
+                            ServiceCoordinator.ServiceStatus.ERROR -> {
+                                updateNotification("Recognition service error - ${recognitionState.lastError}")
+                            }
+                            ServiceCoordinator.ServiceStatus.INITIALIZING -> {
+                                updateNotification("Initializing recognition service...")
+                            }
+                            else -> {
+                                updateNotification("Recognition service status unknown")
+                            }
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 updateNotification("Failed to initialize recognition service")

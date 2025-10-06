@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Store Metadata -->
+    <string name="app_short_description">Traducción instantánea con soporte de voz</string>
+    <string name="app_full_description">Global Translate es una potente aplicación de traducción en tiempo real que rompe las barreras idiomáticas con tecnología avanzada de IA. Traduce texto, voz e imágenes al instante en más de 100 idiomas con soporte sin conexión y reconocimiento de voz.
+
+Características principales:
+• Traducción de texto en tiempo real en más de 100 idiomas
+• Traducción de voz a voz con reconocimiento de habla
+• Traducción con cámara para señales, menús y documentos
+• Traducción sin conexión para pares de idiomas populares
+• Modo de conversación para comunicación bidireccional
+• Historial y favoritos para fácil acceso
+• Modo oscuro e interfaz personalizable
+• Enfocado en la privacidad con opciones de procesamiento local
+
+Perfecto para viajeros, estudiantes, profesionales y cualquiera que necesite traducción confiable sobre la marcha. ¡Descarga Global Translate hoy y comunícate con confianza en cualquier idioma!</string>
+    
+    <!-- App Category and Tags -->
+    <string name="app_category">Herramientas</string>
+    <string name="app_tags">traducción,idioma,voz,sin_conexión,viaje,comunicación,ia,multiidioma</string>
+    
+    <!-- Developer Information -->
+    <string name="developer_name">Equipo Global Translate</string>
+    <string name="developer_email">support@gloabtranslate.com</string>
+    <string name="developer_website">https://gloabtranslate.com</string>
+    <string name="developer_privacy_policy">https://gloabtranslate.com/privacy</string>
+    
+    <!-- App Store Compliance -->
+    <string name="app_size">25 MB</string>
+    <string name="minimum_android_version">Android 14 (API 34)</string>
+    <string name="permissions_required">Micrófono, Cámara, Internet, Almacenamiento</string>
+    
+    <!-- Feature Highlights -->
+    <string name="feature_1">Traducción en tiempo real en más de 100 idiomas</string>
+    <string name="feature_2">Reconocimiento de voz y texto a voz</string>
+    <string name="feature_3">Capacidades de traducción sin conexión</string>
+    <string name="feature_4">Traducción con cámara para señales y documentos</string>
+    <string name="feature_5">Modo de conversación para comunicación bidireccional</string>
+    <string name="feature_6">Gestión de historial y favoritos</string>
+    <string name="feature_7">Modo oscuro e interfaz personalizable</string>
+    <string name="feature_8">Enfocado en la privacidad con procesamiento local</string>
+    
+    <!-- Screenshots Descriptions -->
+    <string name="screenshot_1_description">Interfaz principal de traducción con entrada de texto</string>
+    <string name="screenshot_2_description">Traducción de voz con botón de micrófono</string>
+    <string name="screenshot_3_description">Traducción con cámara escaneando una señal</string>
+    <string name="screenshot_4_description">Pantalla de selección de idioma</string>
+    <string name="screenshot_5_description">Configuraciones y preferencias</string>
+    <string name="screenshot_6_description">Historial de traducción y favoritos</string>
+    <string name="screenshot_7_description">Interfaz de modo de conversación</string>
+    <string name="screenshot_8_description">Opciones de traducción sin conexión</string>
+    
+    <!-- Keywords for App Store Optimization -->
+    <string name="keywords">traducción,idioma,voz,sin_conexión,viaje,comunicación,ia,multiidioma,tiempo_real,cámara,conversación,privacidad,local</string>
+    
+    <!-- App Store Promotional Text -->
+    <string name="promotional_text">¡Rompe las barreras idiomáticas con Global Translate! Traducción en tiempo real, reconocimiento de voz y soporte sin conexión en una potente aplicación. Perfecto para viajeros, estudiantes y profesionales.</string>
+    
+    <!-- What's New -->
+    <string name="whats_new">• Nuevas funciones de traducción de voz
+• Mejor precisión de traducción sin conexión
+• Traducción con cámara mejorada
+• Mejor modo de conversación
+• Soporte de idiomas actualizado
+• Mejoras de rendimiento
+• Corrección de errores y mejoras de estabilidad</string>
+</resources>

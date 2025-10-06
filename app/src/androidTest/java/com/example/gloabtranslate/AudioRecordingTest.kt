@@ -9,6 +9,7 @@ import android.media.MediaRecorder
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
+import com.example.gloabtranslate.core.data.config.ConfigurationManager
 import com.example.gloabtranslate.speech.AudioConfig
 import com.example.gloabtranslate.speech.AudioProcessor
 import com.example.gloabtranslate.speech.AudioRecorder
@@ -23,10 +24,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 
 /**
  * Integration tests for audio recording functionality.
@@ -40,6 +41,7 @@ class AudioRecordingTest {
     val permissionRule = GrantPermissionRule.grant(Manifest.permission.RECORD_AUDIO)
 
     private lateinit var context: Context
+    private lateinit var configurationManager: ConfigurationManager
     private lateinit var audioRecorder: AudioRecorder
     private lateinit var audioProcessor: AudioProcessor
     private lateinit var speechRecognitionService: SpeechRecognitionService
@@ -47,31 +49,32 @@ class AudioRecordingTest {
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
-        audioRecorder = AudioRecorder(context)
-        audioProcessor = AudioProcessor(context)
+        configurationManager = ConfigurationManager.getInstance(context)
+        audioRecorder = AudioRecorder(context, configurationManager)
+        audioProcessor = AudioProcessor(context, configurationManager)
         speechRecognitionService = SpeechRecognitionService(context)
     }
 
     @After
     fun tearDown() {
-        audioRecorder.cleanup()
-        audioProcessor.cleanup()
+        audioRecorder.close()
+        audioProcessor.close()
         speechRecognitionService.cleanup()
     }
 
     @Test
     fun `test audio recorder initialization`() = runTest {
         // When
-        val isInitialized = audioRecorder.initialize()
+        val result = audioRecorder.initialize()
 
         // Then
-        assertTrue(isInitialized, "Audio recorder should initialize successfully")
+        assertTrue("Audio recorder should initialize successfully", result.success)
     }
 
     @Test
     fun `test audio recorder configuration`() = runTest {
         // Given
-        val config = AudioConfig(
+        val config = AudioRecorder.RecordingConfig(
             sampleRate = 44100,
             channelConfig = AudioFormat.CHANNEL_IN_MONO,
             audioFormat = AudioFormat.ENCODING_PCM_16BIT,
@@ -79,10 +82,10 @@ class AudioRecordingTest {
         )
 
         // When
-        val isInitialized = audioRecorder.initialize(config)
+        val result = audioRecorder.initialize(config)
 
         // Then
-        assertTrue(isInitialized, "Audio recorder should initialize with custom config")
+        assertTrue("Audio recorder should initialize with custom config", result.success)
     }
 
     @Test
@@ -91,13 +94,16 @@ class AudioRecordingTest {
         audioRecorder.initialize()
 
         // When
-        val startResult = audioRecorder.startRecording()
+        val audioFlow = audioRecorder.startRecording()
         delay(100) // Record for a short duration
-        val stopResult = audioRecorder.stopRecording()
+        val isRecordingAfterStart = audioRecorder.isRecording()
+        audioRecorder.stopRecording()
+        val isRecordingAfterStop = audioRecorder.isRecording()
 
         // Then
-        assertTrue(startResult, "Audio recording should start successfully")
-        assertTrue(stopResult, "Audio recording should stop successfully")
+        assertNotNull("Audio flow should be created", audioFlow)
+        assertTrue("Should be recording after start", isRecordingAfterStart)
+        assertFalse("Should not be recording after stop", isRecordingAfterStop)
     }
 
     @Test
@@ -106,22 +112,21 @@ class AudioRecordingTest {
 
         sampleRates.forEach { sampleRate ->
             // Given
-            val config = AudioConfig(
+            val config = AudioRecorder.RecordingConfig(
                 sampleRate = sampleRate,
                 channelConfig = AudioFormat.CHANNEL_IN_MONO,
                 audioFormat = AudioFormat.ENCODING_PCM_16BIT
             )
 
             // When
-            val isInitialized = audioRecorder.initialize(config)
-            val startResult = audioRecorder.startRecording()
+            val initResult = audioRecorder.initialize(config)
+            val audioFlow = audioRecorder.startRecording()
             delay(50)
-            val stopResult = audioRecorder.stopRecording()
+            audioRecorder.stopRecording()
 
             // Then
-            assertTrue(isInitialized, "Audio recorder should initialize with sample rate: $sampleRate")
-            assertTrue(startResult, "Audio recording should start with sample rate: $sampleRate")
-            assertTrue(stopResult, "Audio recording should stop with sample rate: $sampleRate")
+            assertTrue("Audio recorder should initialize with sample rate: $sampleRate", initResult.success)
+            assertNotNull("Audio recording should start with sample rate: $sampleRate", audioFlow)
         }
     }
 
@@ -134,22 +139,21 @@ class AudioRecordingTest {
 
         channelConfigs.forEach { channelConfig ->
             // Given
-            val config = AudioConfig(
+            val config = AudioRecorder.RecordingConfig(
                 sampleRate = 44100,
                 channelConfig = channelConfig,
                 audioFormat = AudioFormat.ENCODING_PCM_16BIT
             )
 
             // When
-            val isInitialized = audioRecorder.initialize(config)
-            val startResult = audioRecorder.startRecording()
+            val initResult = audioRecorder.initialize(config)
+            val audioFlow = audioRecorder.startRecording()
             delay(50)
-            val stopResult = audioRecorder.stopRecording()
+            audioRecorder.stopRecording()
 
             // Then
-            assertTrue(isInitialized, "Audio recorder should initialize with channel config: $channelConfig")
-            assertTrue(startResult, "Audio recording should start with channel config: $channelConfig")
-            assertTrue(stopResult, "Audio recording should stop with channel config: $channelConfig")
+            assertTrue("Audio recorder should initialize with channel config: $channelConfig", initResult.success)
+            assertNotNull("Audio recording should start with channel config: $channelConfig", audioFlow)
         }
     }
 
@@ -163,22 +167,21 @@ class AudioRecordingTest {
 
         audioFormats.forEach { audioFormat ->
             // Given
-            val config = AudioConfig(
+            val config = AudioRecorder.RecordingConfig(
                 sampleRate = 44100,
                 channelConfig = AudioFormat.CHANNEL_IN_MONO,
                 audioFormat = audioFormat
             )
 
             // When
-            val isInitialized = audioRecorder.initialize(config)
-            val startResult = audioRecorder.startRecording()
+            val initResult = audioRecorder.initialize(config)
+            val audioFlow = audioRecorder.startRecording()
             delay(50)
-            val stopResult = audioRecorder.stopRecording()
+            audioRecorder.stopRecording()
 
             // Then
-            assertTrue(isInitialized, "Audio recorder should initialize with audio format: $audioFormat")
-            assertTrue(startResult, "Audio recording should start with audio format: $audioFormat")
-            assertTrue(stopResult, "Audio recording should stop with audio format: $audioFormat")
+            assertTrue("Audio recorder should initialize with audio format: $audioFormat", initResult.success)
+            assertNotNull("Audio recording should start with audio format: $audioFormat", audioFlow)
         }
     }
 
@@ -195,9 +198,9 @@ class AudioRecordingTest {
         val stoppedState = audioRecorder.isRecording()
 
         // Then
-        assertFalse(initialState, "Initial state should not be recording")
-        assertTrue(recordingState, "State should be recording after start")
-        assertFalse(stoppedState, "State should not be recording after stop")
+        assertFalse("Initial state should not be recording", initialState)
+        assertTrue("State should be recording after start", recordingState)
+        assertFalse("State should not be recording after stop", stoppedState)
     }
 
     @Test
@@ -214,8 +217,8 @@ class AudioRecordingTest {
 
         // Then
         val duration = endTime - startTime
-        assertTrue(duration >= 1000, "Recording duration should be at least 1 second")
-        assertTrue(duration <= 1100, "Recording duration should not exceed 1.1 seconds")
+        assertTrue("Recording duration should be at least 1 second", duration >= 1000)
+        assertTrue("Recording duration should not exceed 1.1 seconds", duration <= 1100)
     }
 
     @Test
@@ -225,44 +228,44 @@ class AudioRecordingTest {
 
         // When
         audioRecorder.startRecording()
+        val initiallyRecording = audioRecorder.isRecording()
         delay(500)
         audioRecorder.pauseRecording()
-        val pausedState = audioRecorder.isPaused()
         delay(200)
         audioRecorder.resumeRecording()
-        val resumedState = audioRecorder.isPaused()
+        val finallyRecording = audioRecorder.isRecording()
         delay(500)
         audioRecorder.stopRecording()
 
         // Then
-        assertTrue(pausedState, "Recording should be paused")
-        assertFalse(resumedState, "Recording should be resumed")
+        assertTrue("Should be recording initially", initiallyRecording)
+        assertTrue("Should be recording after resume", finallyRecording)
     }
 
     @Test
     fun `test audio processor initialization`() = runTest {
         // When
-        val isInitialized = audioProcessor.initialize()
+        val result = audioProcessor.initialize()
 
         // Then
-        assertTrue(isInitialized, "Audio processor should initialize successfully")
+        assertTrue("Audio processor should initialize successfully", result.success)
     }
 
     @Test
     fun `test audio processor with different configurations`() = runTest {
         // Given
         val configs = listOf(
-            AudioConfig(sampleRate = 44100, channelConfig = AudioFormat.CHANNEL_IN_MONO),
-            AudioConfig(sampleRate = 16000, channelConfig = AudioFormat.CHANNEL_IN_STEREO),
-            AudioConfig(sampleRate = 48000, channelConfig = AudioFormat.CHANNEL_IN_MONO)
+            AudioProcessor.ProcessingConfig(sampleRate = 44100),
+            AudioProcessor.ProcessingConfig(sampleRate = 16000),
+            AudioProcessor.ProcessingConfig(sampleRate = 48000)
         )
 
         configs.forEach { config ->
             // When
-            val isInitialized = audioProcessor.initialize(config)
+            val result = audioProcessor.initialize(config)
 
             // Then
-            assertTrue(isInitialized, "Audio processor should initialize with config: $config")
+            assertTrue("Audio processor should initialize with config: $config", result.success)
         }
     }
 
@@ -273,11 +276,11 @@ class AudioRecordingTest {
         val testAudioData = ByteArray(1024) { (it % 256).toByte() }
 
         // When
-        val processedData = audioProcessor.processAudio(testAudioData)
+        val result = audioProcessor.processAudioFrame(testAudioData)
 
         // Then
-        assertNotNull(processedData, "Processed audio data should not be null")
-        assertTrue(processedData.isNotEmpty(), "Processed audio data should not be empty")
+        assertNotNull("Processing result should not be null", result)
+        assertTrue("Processing should succeed", result.success)
     }
 
     @Test
@@ -287,11 +290,11 @@ class AudioRecordingTest {
         val testAudioData = ByteArray(1024) { (it % 256).toByte() }
 
         // When
-        val processedData = audioProcessor.processAudio(testAudioData)
+        val result = audioProcessor.processAudioFrame(testAudioData)
 
         // Then
-        assertNotNull(processedData, "Processed audio data should not be null")
-        assertTrue(processedData.isNotEmpty(), "Processed audio data should not be empty")
+        assertNotNull("Processing result should not be null", result)
+        assertTrue("Processing should succeed", result.success)
     }
 
     @Test
@@ -301,11 +304,11 @@ class AudioRecordingTest {
         val testAudioData = ByteArray(1024) { (it % 256).toByte() }
 
         // When
-        val processedData = audioProcessor.processAudio(testAudioData)
+        val result = audioProcessor.processAudioFrame(testAudioData)
 
         // Then
-        assertNotNull(processedData, "Processed audio data should not be null")
-        assertTrue(processedData.isNotEmpty(), "Processed audio data should not be empty")
+        assertNotNull("Processing result should not be null", result)
+        assertTrue("Processing should succeed", result.success)
     }
 
     @Test
@@ -314,7 +317,7 @@ class AudioRecordingTest {
         val isInitialized = speechRecognitionService.initialize()
 
         // Then
-        assertTrue(isInitialized, "Speech recognition service should initialize successfully")
+        assertTrue("Speech recognition service should initialize successfully", isInitialized)
     }
 
     @Test
@@ -323,7 +326,7 @@ class AudioRecordingTest {
         val isAvailable = speechRecognitionService.isAvailable()
 
         // Then
-        assertTrue(isAvailable, "Speech recognition service should be available")
+        assertTrue("Speech recognition service should be available", isAvailable)
     }
 
     @Test
@@ -332,10 +335,10 @@ class AudioRecordingTest {
         val supportedLanguages = speechRecognitionService.getSupportedLanguages()
 
         // Then
-        assertNotNull(supportedLanguages, "Supported languages should not be null")
-        assertTrue(supportedLanguages.isNotEmpty(), "Supported languages should not be empty")
-        assertTrue(supportedLanguages.contains("en-US"), "English should be supported")
-        assertTrue(supportedLanguages.contains("es-ES"), "Spanish should be supported")
+        assertNotNull("Supported languages should not be null", supportedLanguages)
+        assertTrue("Supported languages should not be empty", supportedLanguages.isNotEmpty())
+        assertTrue("English should be supported", supportedLanguages.contains("en-US"))
+        assertTrue("Spanish should be supported", supportedLanguages.contains("es-ES"))
     }
 
     @Test
@@ -350,7 +353,7 @@ class AudioRecordingTest {
         // Then
         // Note: This test may not always succeed as it depends on actual speech input
         // The test verifies that the service can be called without throwing exceptions
-        assertNotNull(result, "Recognition result should not be null")
+        assertNotNull("Recognition result should not be null", result)
     }
 
     @Test
@@ -365,7 +368,7 @@ class AudioRecordingTest {
         // Then
         // Note: This test may not always succeed as it depends on actual speech input
         // The test verifies that the service can be called without throwing exceptions
-        assertNotNull(result, "Recognition result should not be null")
+        assertNotNull("Recognition result should not be null", result)
     }
 
     @Test
@@ -383,7 +386,7 @@ class AudioRecordingTest {
         // Then
         // Note: This test may not always succeed as it depends on actual speech input
         // The test verifies that the service can be called without throwing exceptions
-        assertNotNull(result, "Recognition result should not be null")
+        assertNotNull("Recognition result should not be null", result)
     }
 
     @Test
@@ -401,7 +404,7 @@ class AudioRecordingTest {
         // Then
         // Note: This test may not always succeed as it depends on actual speech input
         // The test verifies that the service can be called without throwing exceptions
-        assertNotNull(result, "Recognition result should not be null")
+        assertNotNull("Recognition result should not be null", result)
     }
 
     @Test
@@ -410,7 +413,7 @@ class AudioRecordingTest {
 
         bufferSizes.forEach { bufferSize ->
             // Given
-            val config = AudioConfig(
+            val config = AudioRecorder.RecordingConfig(
                 sampleRate = 44100,
                 channelConfig = AudioFormat.CHANNEL_IN_MONO,
                 audioFormat = AudioFormat.ENCODING_PCM_16BIT,
@@ -421,29 +424,29 @@ class AudioRecordingTest {
             val isInitialized = audioRecorder.initialize(config)
             val startResult = audioRecorder.startRecording()
             delay(100)
-            val stopResult = audioRecorder.stopRecording()
+            audioRecorder.stopRecording() // Returns Unit, so just call it
 
             // Then
-            assertTrue(isInitialized, "Audio recorder should initialize with buffer size: $bufferSize")
-            assertTrue(startResult, "Audio recording should start with buffer size: $bufferSize")
-            assertTrue(stopResult, "Audio recording should stop with buffer size: $bufferSize")
+            assertTrue("Audio recorder should initialize with buffer size: $bufferSize", isInitialized.success)
+            assertNotNull("Audio recording should start with buffer size: $bufferSize", startResult)
+            // Stop operation completed without throwing exceptions
         }
     }
 
     @Test
     fun `test audio recording error handling`() = runTest {
         // Given
-        val invalidConfig = AudioConfig(
+        val invalidConfig = AudioRecorder.RecordingConfig(
             sampleRate = -1, // Invalid sample rate
             channelConfig = AudioFormat.CHANNEL_IN_MONO,
             audioFormat = AudioFormat.ENCODING_PCM_16BIT
         )
 
         // When
-        val isInitialized = audioRecorder.initialize(invalidConfig)
+        val result = audioRecorder.initialize(invalidConfig)
 
         // Then
-        assertFalse(isInitialized, "Audio recorder should not initialize with invalid config")
+        assertFalse("Audio recorder should not initialize with invalid config", result.success)
     }
 
     @Test
@@ -453,11 +456,11 @@ class AudioRecordingTest {
         audioRecorder.startRecording()
 
         // When
-        audioRecorder.cleanup()
+        audioRecorder.close()
 
         // Then
         // Cleanup should not throw exceptions
-        assertTrue(true, "Cleanup should complete successfully")
+        assertTrue("Cleanup should complete successfully", true)
     }
 
     @Test
@@ -466,11 +469,11 @@ class AudioRecordingTest {
         audioProcessor.initialize()
 
         // When
-        audioProcessor.cleanup()
+        audioProcessor.close()
 
         // Then
         // Cleanup should not throw exceptions
-        assertTrue(true, "Cleanup should complete successfully")
+        assertTrue("Cleanup should complete successfully", true)
     }
 
     @Test
@@ -483,6 +486,6 @@ class AudioRecordingTest {
 
         // Then
         // Cleanup should not throw exceptions
-        assertTrue(true, "Cleanup should complete successfully")
+        assertTrue("Cleanup should complete successfully", true)
     }
 }

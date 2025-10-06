@@ -3,6 +3,7 @@ package com.example.gloabtranslate
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso
@@ -17,9 +18,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 
 /**
  * UI tests for permission flows.
@@ -58,7 +59,7 @@ class PermissionFlowTest {
         activityScenario = ActivityScenario.launch(MainActivity::class.java)
 
         // Then - UI should be fully functional
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
         
         Espresso.onView(ViewMatchers.withId(R.id.startButton))
@@ -76,7 +77,7 @@ class PermissionFlowTest {
 
         // Then - App should handle permission denial gracefully
         // The activity might finish or show appropriate UI
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
     }
 
@@ -89,7 +90,7 @@ class PermissionFlowTest {
         activityScenario = ActivityScenario.launch(MainActivity::class.java)
 
         // Then - App should request additional permissions
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
     }
 
@@ -106,7 +107,7 @@ class PermissionFlowTest {
         activityScenario = ActivityScenario.launch(MainActivity::class.java)
 
         // Then - App should work with notification permission
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
     }
 
@@ -116,12 +117,12 @@ class PermissionFlowTest {
         val context = ApplicationProvider.getApplicationContext()
 
         // When - Check individual permissions
-        val hasRecordAudio = context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
-        val hasInternet = context.checkSelfPermission(Manifest.permission.INTERNET) == PackageManager.PERMISSION_GRANTED
-        val hasNotifications = context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        val hasRecordAudio = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+        val hasInternet = ContextCompat.checkSelfPermission(context, Manifest.permission.INTERNET) == PackageManager.PERMISSION_GRANTED
+        val hasNotifications = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
 
         // Then - Permissions should be checkable
-        assertTrue(hasInternet, "Internet permission should be granted for testing")
+        assertTrue("Internet permission should be granted for testing", hasInternet)
         // Other permissions depend on test setup
     }
 
@@ -134,7 +135,7 @@ class PermissionFlowTest {
         // The permission dialog should appear
 
         // Then - App should handle the permission flow
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
     }
 
@@ -164,7 +165,7 @@ class PermissionFlowTest {
         activityScenario = ActivityScenario.launch(MainActivity::class.java)
 
         // Then - App should handle partial permissions
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
     }
 
@@ -182,7 +183,7 @@ class PermissionFlowTest {
         activityScenario.recreate()
 
         // Then - Permissions should persist
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
     }
 
@@ -193,7 +194,7 @@ class PermissionFlowTest {
 
         // When - App tries to use restricted functionality
         // Then - App should handle permission errors gracefully
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
     }
 
@@ -210,7 +211,7 @@ class PermissionFlowTest {
         )
 
         val permissionStates = requiredPermissions.map { permission ->
-            context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
         }
 
         // Then - Permission states should be determinable
@@ -224,7 +225,7 @@ class PermissionFlowTest {
 
         // When - App should show permission rationale if needed
         // Then - UI should remain functional
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
     }
 
@@ -235,7 +236,7 @@ class PermissionFlowTest {
 
         // When - App might redirect to settings
         // Then - App should handle this flow gracefully
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
     }
 
@@ -246,7 +247,7 @@ class PermissionFlowTest {
 
         // When - App requests multiple permissions
         // Then - All permission requests should be handled
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
     }
 
@@ -259,7 +260,7 @@ class PermissionFlowTest {
         activityScenario = ActivityScenario.launch(MainActivity::class.java)
 
         // Then - App should handle permission state changes
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
     }
 
@@ -270,7 +271,7 @@ class PermissionFlowTest {
 
         // When - Permission callbacks are triggered
         // Then - App should handle callbacks properly
-        Espresso.onView(ViewMatchers.withId(R.id.titleText))
+        Espresso.onView(ViewMatchers.withId(R.id.statusText))
             .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
     }
 
@@ -278,7 +279,7 @@ class PermissionFlowTest {
     fun `test permission-based feature availability`() {
         // Given - Check permission-dependent features
         val context = ApplicationProvider.getApplicationContext()
-        val hasRecordAudio = context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+        val hasRecordAudio = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
 
         // When - Launch activity
         activityScenario = ActivityScenario.launch(MainActivity::class.java)

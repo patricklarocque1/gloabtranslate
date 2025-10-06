@@ -6,7 +6,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.example.gloabtranslate.nlp.RecognitionService
 import com.example.gloabtranslate.nlp.RecognizerAvailabilityManager
-import com.google.mlkit.common.MlKitException
+// MlKitException not available in test context - using generic Exception
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -15,10 +15,10 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 
 /**
  * Integration tests for ML Kit functionality.
@@ -52,7 +52,7 @@ class MlKitIntegrationTest {
         // Then
         // This test will pass if Google Play Services is available
         // and fail if not available (e.g., on emulator without Google Play)
-        assertTrue(isAvailable, "Google Play Services should be available for ML Kit integration")
+        assertTrue("Google Play Services should be available for ML Kit integration", isAvailable)
     }
 
     @Test
@@ -61,7 +61,7 @@ class MlKitIntegrationTest {
         val result = recognitionService.initialize()
 
         // Then
-        assertTrue(result.success, "Recognition service should initialize successfully")
+        assertTrue("Recognition service should initialize successfully", result.success)
         assertNotNull(result.text, "Initialization result should have a message")
     }
 
@@ -75,7 +75,7 @@ class MlKitIntegrationTest {
         val result = recognitionService.identifyLanguage(testText)
 
         // Then
-        assertTrue(result.success, "Language identification should succeed")
+        assertTrue("Language identification should succeed", result.success)
         assertEquals(testText, result.text, "Original text should be preserved")
         assertNotNull(result.sourceLanguage, "Source language should be identified")
         assertEquals("en", result.sourceLanguage, "English text should be identified as 'en'")
@@ -91,7 +91,7 @@ class MlKitIntegrationTest {
         val result = recognitionService.identifyLanguage(testText)
 
         // Then
-        assertTrue(result.success, "Language identification should succeed")
+        assertTrue("Language identification should succeed", result.success)
         assertEquals(testText, result.text, "Original text should be preserved")
         assertNotNull(result.sourceLanguage, "Source language should be identified")
         assertEquals("es", result.sourceLanguage, "Spanish text should be identified as 'es'")
@@ -107,7 +107,7 @@ class MlKitIntegrationTest {
         val result = recognitionService.identifyLanguage(testText)
 
         // Then
-        assertTrue(result.success, "Language identification should succeed")
+        assertTrue("Language identification should succeed", result.success)
         assertEquals(testText, result.text, "Original text should be preserved")
         assertNotNull(result.sourceLanguage, "Source language should be identified")
         assertEquals("fr", result.sourceLanguage, "French text should be identified as 'fr'")
@@ -125,12 +125,12 @@ class MlKitIntegrationTest {
         val result = recognitionService.translateText(sourceText, sourceLanguage, targetLanguage)
 
         // Then
-        assertTrue(result.success, "Translation should succeed")
+        assertTrue("Translation should succeed", result.success)
         assertEquals(sourceText, result.text, "Original text should be preserved")
         assertEquals(sourceLanguage, result.sourceLanguage, "Source language should be preserved")
         assertEquals(targetLanguage, result.targetLanguage, "Target language should be preserved")
         assertNotNull(result.translatedText, "Translated text should not be null")
-        assertTrue(result.translatedText!!.isNotEmpty(), "Translated text should not be empty")
+        assertTrue("Translated text should not be empty", result.translatedText!!.isNotEmpty())
     }
 
     @Test
@@ -145,12 +145,12 @@ class MlKitIntegrationTest {
         val result = recognitionService.translateText(sourceText, sourceLanguage, targetLanguage)
 
         // Then
-        assertTrue(result.success, "Translation should succeed")
+        assertTrue("Translation should succeed", result.success)
         assertEquals(sourceText, result.text, "Original text should be preserved")
         assertEquals(sourceLanguage, result.sourceLanguage, "Source language should be preserved")
         assertEquals(targetLanguage, result.targetLanguage, "Target language should be preserved")
         assertNotNull(result.translatedText, "Translated text should not be null")
-        assertTrue(result.translatedText!!.isNotEmpty(), "Translated text should not be empty")
+        assertTrue("Translated text should not be empty", result.translatedText!!.isNotEmpty())
     }
 
     @Test
@@ -165,12 +165,12 @@ class MlKitIntegrationTest {
         val result = recognitionService.translateText(sourceText, sourceLanguage, targetLanguage)
 
         // Then
-        assertTrue(result.success, "Translation should succeed")
+        assertTrue("Translation should succeed", result.success)
         assertEquals(sourceText, result.text, "Original text should be preserved")
         assertEquals(sourceLanguage, result.sourceLanguage, "Source language should be preserved")
         assertEquals(targetLanguage, result.targetLanguage, "Target language should be preserved")
         assertNotNull(result.translatedText, "Translated text should not be null")
-        assertTrue(result.translatedText!!.isNotEmpty(), "Translated text should not be empty")
+        assertTrue("Translated text should not be empty", result.translatedText!!.isNotEmpty())
     }
 
     @Test
@@ -186,7 +186,7 @@ class MlKitIntegrationTest {
 
         // Then
         // Empty text should still be processed (though result may vary)
-        assertNotNull(result, "Result should not be null")
+        assertNotNull("Result should not be null", result)
     }
 
     @Test
@@ -204,10 +204,10 @@ class MlKitIntegrationTest {
         val result = recognitionService.translateText(sourceText, sourceLanguage, targetLanguage)
 
         // Then
-        assertTrue(result.success, "Translation should succeed with long text")
+        assertTrue("Translation should succeed with long text", result.success)
         assertEquals(sourceText, result.text, "Original text should be preserved")
         assertNotNull(result.translatedText, "Translated text should not be null")
-        assertTrue(result.translatedText!!.isNotEmpty(), "Translated text should not be empty")
+        assertTrue("Translated text should not be empty", result.translatedText!!.isNotEmpty())
     }
 
     @Test
@@ -216,12 +216,12 @@ class MlKitIntegrationTest {
         val capability = availabilityManager.determineRecognitionCapability()
 
         // Then
-        assertNotNull(capability, "Recognition capability should be determined")
+        assertNotNull("Recognition capability should be determined", capability)
         assertTrue(
+            "Capability should be one of the expected values",
             capability == RecognizerAvailabilityManager.RecognitionCapability.ON_DEVICE_AVAILABLE ||
             capability == RecognizerAvailabilityManager.RecognitionCapability.CLOUD_ONLY ||
-            capability == RecognizerAvailabilityManager.RecognitionCapability.UNAVAILABLE,
-            "Capability should be one of the expected values"
+            capability == RecognizerAvailabilityManager.RecognitionCapability.UNAVAILABLE
         )
     }
 
@@ -235,7 +235,7 @@ class MlKitIntegrationTest {
 
         // Then
         assertNotNull(statusMessage, "Status message should not be null")
-        assertTrue(statusMessage.isNotEmpty(), "Status message should not be empty")
+        assertTrue("Status message should not be empty", statusMessage.isNotEmpty())
     }
 
     @Test
@@ -248,7 +248,7 @@ class MlKitIntegrationTest {
 
         // Then
         assertNotNull(recommendedAction, "Recommended action should not be null")
-        assertTrue(recommendedAction.isNotEmpty(), "Recommended action should not be empty")
+        assertTrue("Recommended action should not be empty", recommendedAction.isNotEmpty())
     }
 
     @Test
@@ -262,7 +262,7 @@ class MlKitIntegrationTest {
         // Then
         // This test will pass regardless of the actual availability
         // as it tests the method doesn't throw exceptions
-        assertNotNull(isOnDeviceAvailable, "On-device availability should be determined")
+        assertNotNull("On-device availability should be determined", isOnDeviceAvailable)
     }
 
     @Test
@@ -276,7 +276,7 @@ class MlKitIntegrationTest {
         // Then
         // This test will pass regardless of the actual availability
         // as it tests the method doesn't throw exceptions
-        assertNotNull(isCloudAvailable, "Cloud availability should be determined")
+        assertNotNull("Cloud availability should be determined", isCloudAvailable)
     }
 
     @Test
@@ -291,10 +291,10 @@ class MlKitIntegrationTest {
         val isCloudAvailable = recognitionService.isCloudAvailable()
 
         // Then
-        assertNotNull(capabilityStatus, "Capability status should not be null")
-        assertNotNull(recommendedAction, "Recommended action should not be null")
-        assertNotNull(isOnDeviceAvailable, "On-device availability should be determined")
-        assertNotNull(isCloudAvailable, "Cloud availability should be determined")
+        assertNotNull("Capability status should not be null", capabilityStatus)
+        assertNotNull("Recommended action should not be null", recommendedAction)
+        assertNotNull("On-device availability should be determined", isOnDeviceAvailable)
+        assertNotNull("Cloud availability should be determined", isCloudAvailable)
     }
 
     @Test
@@ -308,7 +308,7 @@ class MlKitIntegrationTest {
         // When & Then
         texts.forEach { text ->
             val result = recognitionService.translateText(text, sourceLanguage, targetLanguage)
-            assertTrue(result.success, "Translation should succeed for: $text")
+            assertTrue("Translation should succeed for: $text", result.success)
             assertEquals(text, result.text, "Original text should be preserved for: $text")
             assertNotNull(result.translatedText, "Translated text should not be null for: $text")
         }
@@ -326,7 +326,7 @@ class MlKitIntegrationTest {
         val result = recognitionService.translateText(sourceText, sourceLanguage, targetLanguage)
 
         // Then
-        assertTrue(result.success, "Translation should succeed with special characters")
+        assertTrue("Translation should succeed with special characters", result.success)
         assertEquals(sourceText, result.text, "Original text should be preserved")
         assertNotNull(result.translatedText, "Translated text should not be null")
     }
@@ -343,7 +343,7 @@ class MlKitIntegrationTest {
         val result = recognitionService.translateText(sourceText, sourceLanguage, targetLanguage)
 
         // Then
-        assertTrue(result.success, "Translation should succeed with numbers")
+        assertTrue("Translation should succeed with numbers", result.success)
         assertEquals(sourceText, result.text, "Original text should be preserved")
         assertNotNull(result.translatedText, "Translated text should not be null")
     }
@@ -361,7 +361,7 @@ class MlKitIntegrationTest {
 
         // Then
         results.forEach { result ->
-            assertTrue(result.success, "Language identification should succeed")
+            assertTrue("Language identification should succeed", result.success)
             assertNotNull(result.sourceLanguage, "Source language should be identified")
         }
     }
@@ -384,7 +384,7 @@ class MlKitIntegrationTest {
 
         // Then
         results.forEach { result ->
-            assertTrue(result.success, "Translation should succeed")
+            assertTrue("Translation should succeed", result.success)
             assertNotNull(result.translatedText, "Translated text should not be null")
         }
     }
@@ -399,6 +399,6 @@ class MlKitIntegrationTest {
 
         // Then
         // Cleanup should not throw exceptions
-        assertTrue(true, "Cleanup should complete successfully")
+        assertTrue("Cleanup should complete successfully", true)
     }
 }

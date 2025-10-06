@@ -1,16 +1,25 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
     namespace = "com.example.gloabtranslate.speech"
-    compileSdk = 36
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 34
+        minSdk = libs.versions.minSdk.get().toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+    }
+
+    testOptions {
+        targetSdk = libs.versions.targetSdk.get().toInt()
+    }
+
+    lint {
+        targetSdk = libs.versions.targetSdk.get().toInt()
     }
 
     buildTypes {
@@ -24,8 +33,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     packaging {
@@ -40,7 +49,7 @@ android {
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 dependencies {
@@ -59,6 +68,13 @@ dependencies {
     // Lifecycle components
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
+
+    // Dagger (match app module versions for service injection)
+    implementation(libs.dagger)
+    implementation(libs.dagger.android)
+    implementation(libs.dagger.android.support)
+    ksp(libs.dagger.compiler)
+    ksp(libs.dagger.android.processor)
     
     // Using Android Speech API instead of ML Kit
     
@@ -68,10 +84,19 @@ dependencies {
     
     // Test dependencies
     testImplementation(libs.junit)
-    testImplementation("io.mockk:mockk:1.13.8") // MockK for Kotlin testing
+    testImplementation(libs.mockk) // MockK for Kotlin testing
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotlin.test.junit) // For kotlin.test assertions
     testImplementation(libs.robolectric)
+    testImplementation(libs.truth)
+    testImplementation(libs.hamcrest)
+    
+    // Android test dependencies
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.mockk)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.test.rules)
+    androidTestImplementation(libs.test.runner)
+    androidTestImplementation(libs.truth)
 }

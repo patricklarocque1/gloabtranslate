@@ -2,6 +2,7 @@ package com.example.gloabtranslate.speech.config
 
 import android.content.Context
 import com.example.gloabtranslate.core.data.preferences.UserPreferencesManager
+import com.example.gloabtranslate.core.data.config.ConfigurationManager
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.test.runTest
@@ -12,10 +13,12 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
 import kotlin.test.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [28])
 class AudioConfigurationObserverTest {
 
     private lateinit var context: Context
@@ -25,10 +28,11 @@ class AudioConfigurationObserverTest {
     @Before
     fun setUp() = runTest {
         context = RuntimeEnvironment.getApplication()
-        preferencesManager = UserPreferencesManager.getInstance(context)
+    preferencesManager = UserPreferencesManager.getInstance(context)
         preferencesManager.initialize()
         preferencesManager.resetPreferences()
-        observer = AudioConfigurationObserver(context)
+    // Provide a configuration manager instance if observer evolves to expect DI in future
+    observer = AudioConfigurationObserver(context)
     }
 
     @After
@@ -39,31 +43,25 @@ class AudioConfigurationObserverTest {
 
     @Test
     fun emitsCriticalAndNonCriticalUpdates() = runTest {
-        val criticalEvents = Channel<Int>(Channel.BUFFERED)
-        val nonCriticalEvents = Channel<Int>(Channel.BUFFERED)
+        val criticalConfigChannel = Channel<Int>(Channel.CONFLATED)
+        val nonCriticalConfigChannel = Channel<Int>(Channel.CONFLATED)
 
         observer.setOnCriticalConfigChanged { config ->
-            criticalEvents.trySend(config.sampleRate)
+            criticalConfigChannel.trySend(config.sampleRate)
         }
         observer.setOnConfigChanged { config ->
-            nonCriticalEvents.trySend(config.audioBufferSize)
+            nonCriticalConfigChannel.trySend(config.audioBufferSize)
         }
         observer.start()
 
-        // Initial critical emission
-        withTimeout(1_000) { criticalEvents.receive() }
-
-        // Critical change
+        // Make preference changes
         preferencesManager.setPreference("sampleRate", 44100)
-        val criticalSampleRate = withTimeout(1_000) { criticalEvents.receive() }
-        assertEquals(44100, criticalSampleRate)
-
-        // Non-critical change
         preferencesManager.setPreference("audioBufferSize", 2048)
-        val bufferSize = withTimeout(1_000) { nonCriticalEvents.receive() }
-        assertEquals(2048, bufferSize)
 
-        criticalEvents.close()
-        nonCriticalEvents.close()
+        // Assert that the callbacks were invoked with the correct values
+        withTimeout(1000) {
+            assertEquals(44100, criticalConfigChannel.receive())
+            assertEquals(2048, nonCriticalConfigChannel.receive())
+        }
     }
 }

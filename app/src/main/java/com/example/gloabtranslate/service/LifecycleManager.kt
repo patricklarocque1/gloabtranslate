@@ -73,7 +73,8 @@ class LifecycleManager private constructor(private val context: Context) : Defau
         val autoStart: Boolean = false,
         val dependencies: Set<String> = emptySet(),
         val priority: ServicePriority = ServicePriority.NORMAL,
-        val configuration: Map<String, Any> = emptyMap()
+        val configuration: Map<String, Any> = emptyMap(),
+        var isRunning: Boolean = false
     )
     
     /**
@@ -265,6 +266,7 @@ class LifecycleManager private constructor(private val context: Context) : Defau
             val duration = System.currentTimeMillis() - startTime
             
             if (success) {
+                serviceInfo.isRunning = true
                 serviceStartCount.incrementAndGet()
                 notifyServiceLifecycleEvent(ServiceLifecycleEvent(
                     serviceName = serviceName,
@@ -312,6 +314,7 @@ class LifecycleManager private constructor(private val context: Context) : Defau
             val duration = System.currentTimeMillis() - stopTime
             
             if (success) {
+                serviceInfo.isRunning = false
                 serviceStopCount.incrementAndGet()
                 notifyServiceLifecycleEvent(ServiceLifecycleEvent(
                     serviceName = serviceName,
@@ -446,10 +449,15 @@ class LifecycleManager private constructor(private val context: Context) : Defau
     fun getServiceState(serviceName: String): ServiceState {
         return when {
             !registeredServices.containsKey(serviceName) -> ServiceState.UNKNOWN
-            boundServices.containsKey(serviceName) -> ServiceState.BOUND
+            boundServices.containsKey(serviceName) -> {
+                val boundInfo = boundServices[serviceName]
+                when {
+                    boundInfo?.isHealthy == false -> ServiceState.FAILED
+                    else -> ServiceState.BOUND
+                }
+            }
             isServiceRunning(serviceName) -> ServiceState.RUNNING
-            // TODO: Consider other states like STARTING, STOPPING, FAILED, RECOVERING
-            else -> ServiceState.REGISTERED // Default if not bound or running but registered
+            else -> ServiceState.REGISTERED
         }
     }
     
@@ -546,12 +554,10 @@ class LifecycleManager private constructor(private val context: Context) : Defau
                 val intent = Intent(context, serviceInfo.serviceClass)
                 
                 if (serviceInfo.isForegroundService) {
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                        context.startForegroundService(intent)
-                    } else {
-                        context.startService(intent)
-                    }
+                    // Since minSdk is 34 (API 34+), we always use startForegroundService
+                    context.startForegroundService(intent)
                 } else {
+                    // For non-foreground services, still use regular startService
                     context.startService(intent)
                 }
                 
@@ -584,21 +590,8 @@ class LifecycleManager private constructor(private val context: Context) : Defau
     }
     
     private fun isServiceRunning(serviceName: String): Boolean {
-        return try {
-            val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-            val runningServices = activityManager.getRunningServices(Integer.MAX_VALUE)
-            
-            val serviceInfo = registeredServices[serviceName]
-            if (serviceInfo != null) {
-                val serviceClassName = serviceInfo.serviceClass.name
-                runningServices.any { it.service.className == serviceClassName }
-            } else {
-                false // Service not registered
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error checking service status: $serviceName", e)
-            false
-        }
+        val serviceInfo = registeredServices[serviceName]
+        return serviceInfo?.isRunning ?: false
     }
     
     private fun checkDependencies(serviceName: String): Boolean {

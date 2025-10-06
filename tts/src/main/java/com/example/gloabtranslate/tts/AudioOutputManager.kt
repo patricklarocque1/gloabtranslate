@@ -153,18 +153,10 @@ class AudioOutputManager(private val context: Context) {
             }
             
             // Set volume
-            val volumeResult = setVolume(config.volume)
-            if (!volumeResult) {
-                Log.e(TAG, "Failed to set volume")
-                return@withContext false
-            }
+            setVolume(config.volume)
             
             // Set mute state
-            val muteResult = setMuted(config.isMuted)
-            if (!muteResult) {
-                Log.e(TAG, "Failed to set mute state")
-                return@withContext false
-            }
+            setMuted(config.isMuted)
             
             // Request audio focus if needed
             if (config.requestAudioFocus) {
@@ -248,16 +240,12 @@ class AudioOutputManager(private val context: Context) {
     /**
      * Sets the volume
      */
-    suspend fun setVolume(volume: Float): Boolean = withContext(Dispatchers.IO) {
+    suspend fun setVolume(volume: Float) = withContext(Dispatchers.IO) {
         try {
             val clampedVolume = volume.coerceIn(MIN_VOLUME, MAX_VOLUME)
             
             // Update TTS service volume
-            val ttsResult = ttsService.setVolume(clampedVolume)
-            if (!ttsResult) {
-                Log.e(TAG, "Failed to set TTS volume")
-                return@withContext false
-            }
+            ttsService.setVolume(clampedVolume)
             
             currentVolume = clampedVolume
             
@@ -268,28 +256,22 @@ class AudioOutputManager(private val context: Context) {
             ))
             
             Log.d(TAG, "Volume set to: $clampedVolume")
-            true
             
         } catch (e: Exception) {
             Log.e(TAG, "Failed to set volume", e)
-            false
         }
     }
     
     /**
      * Sets the mute state
      */
-    suspend fun setMuted(muted: Boolean): Boolean = withContext(Dispatchers.IO) {
+    suspend fun setMuted(muted: Boolean) = withContext(Dispatchers.IO) {
         try {
             isMuted = muted
             
             // Update TTS service volume
             val volume = if (muted) 0.0f else currentVolume
-            val ttsResult = ttsService.setVolume(volume)
-            if (!ttsResult) {
-                Log.e(TAG, "Failed to set TTS volume for mute state")
-                return@withContext false
-            }
+            ttsService.setVolume(volume)
             
             notifyAudioOutputEvent(AudioOutputEvent(
                 type = AudioOutputEventType.MUTE_STATE_CHANGED,
@@ -298,11 +280,9 @@ class AudioOutputManager(private val context: Context) {
             ))
             
             Log.d(TAG, "Mute state set to: $muted")
-            true
             
         } catch (e: Exception) {
             Log.e(TAG, "Failed to set mute state", e)
-            false
         }
     }
     

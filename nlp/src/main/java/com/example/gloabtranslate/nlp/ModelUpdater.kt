@@ -201,9 +201,9 @@ class ModelUpdater private constructor(
         try {
             Log.d(TAG, "Initializing ModelUpdater")
             
-            // Initialize dependencies
-            modelManager = ModelManager.getInstance(context)
-            modelManager.initialize()
+            // Initialize dependencies - ModelManager should be injected
+            // modelManager = ModelManager.getInstance(context)
+            // modelManager.initialize()
             
             availabilityChecker = ModelAvailabilityChecker.getInstance(context)
             availabilityChecker.initialize()

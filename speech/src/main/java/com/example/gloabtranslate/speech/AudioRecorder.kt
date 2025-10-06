@@ -18,6 +18,8 @@ import android.os.IBinder
 import android.os.Parcelable
 import android.os.Parcel
 import android.util.Log
+import com.example.gloabtranslate.core.logging.DebugLogger
+import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.example.gloabtranslate.core.data.config.ConfigurationManager
@@ -40,7 +42,11 @@ import java.nio.ByteOrder
  * Audio recorder implementation for capturing audio data from microphone.
  * Provides both real-time audio streaming and file-based recording capabilities.
  */
-class AudioRecorder(private val context: Context) {
+class AudioRecorder(
+    private val context: Context,
+    private val configurationManager: ConfigurationManager,
+    private val debugLogger: DebugLogger
+) {
     
     companion object {
         private const val TAG = "AudioRecorder"
@@ -62,7 +68,6 @@ class AudioRecorder(private val context: Context) {
     private var audioRecord: AudioRecord? = null
     private var isRecording = false
     private var recordingThread: Thread? = null
-    private val configurationManager = ConfigurationManager.getInstance(context)
     private val configurationObserver = AudioConfigurationObserver(context)
     private val recorderScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var activePreferencesConfig: PreferencesAudioConfig? = null
@@ -176,8 +181,17 @@ class AudioRecorder(private val context: Context) {
     /**
      * Initializes the audio recorder with default configuration
      */
+    @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     suspend fun initialize(config: RecordingConfig = RecordingConfig()): RecordingResult = withContext(Dispatchers.IO) {
         try {
+            // Check for RECORD_AUDIO permission before initializing AudioRecord
+            if (!hasRecordAudioPermission()) {
+                return@withContext RecordingResult(
+                    success = false,
+                    error = "RECORD_AUDIO permission not granted"
+                )
+            }
+
             val preferences = configurationManager.currentAudioConfig()
             activePreferencesConfig = preferences
             configurationObserver.updateCurrentConfig(preferences)
@@ -223,6 +237,7 @@ class AudioRecorder(private val context: Context) {
 
             val bufferSize = maxOf(minBufferSize, resolvedConfig.bufferSize)
 
+            @Suppress("MissingPermission")
             audioRecord = AudioRecord(
                 resolvedConfig.audioSource,
                 resolvedConfig.sampleRate,
@@ -240,14 +255,14 @@ class AudioRecorder(private val context: Context) {
 
             activeRecordingConfig = resolvedConfig.copy(bufferSize = bufferSize)
 
-            Log.d(TAG, "AudioRecorder initialized successfully")
+            debugLogger.d(TAG, "AudioRecorder initialized successfully")
             RecordingResult(
                 success = true,
                 message = "AudioRecorder initialized with sample rate: ${resolvedConfig.sampleRate}Hz"
             )
             
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to initialize AudioRecorder", e)
+            debugLogger.e(TAG, "Failed to initialize AudioRecorder: ${e.message}", e)
             RecordingResult(
                 success = false,
                 error = "Initialization failed: ${e.message}"
@@ -277,7 +292,7 @@ class AudioRecorder(private val context: Context) {
             audioRec.startRecording()
             isRecording = true
             
-            Log.d(TAG, "Started audio recording")
+            debugLogger.d(TAG, "Started audio recording")
             
             val buffer = ByteArray(config.bufferSize)
             
@@ -294,13 +309,13 @@ class AudioRecorder(private val context: Context) {
                         size = bytesRead
                     ))
                 } else if (bytesRead < 0) {
-                    Log.e(TAG, "Error reading audio data: $bytesRead")
+                    debugLogger.w(TAG, "Error reading audio data: $bytesRead")
                     break
                 }
             }
             
         } catch (e: Exception) {
-            Log.e(TAG, "Error during audio recording", e)
+            debugLogger.e(TAG, "Error during audio recording: ${e.message}", e)
             throw e
         } finally {
             stopRecording()
@@ -348,7 +363,7 @@ class AudioRecorder(private val context: Context) {
             audioRec.startRecording()
             isRecording = true
             
-            Log.d(TAG, "Started recording to file: ${outputFile.absolutePath}")
+            debugLogger.d(TAG, "Started recording to file: ${outputFile.absolutePath}")
             
             val buffer = ByteArray(config.bufferSize)
             val outputStream = FileOutputStream(outputFile)
@@ -368,14 +383,14 @@ class AudioRecorder(private val context: Context) {
                         outputStream.write(buffer, 0, bytesRead)
                         totalBytesRecorded += bytesRead
                     } else if (bytesRead < 0) {
-                        Log.e(TAG, "Error reading audio data: $bytesRead")
+                        debugLogger.w(TAG, "Error reading audio data (file): $bytesRead")
                         break
                     }
                 }
                 
                 val actualDuration = System.currentTimeMillis() - startTime
                 
-                Log.d(TAG, "Recording completed. Duration: ${actualDuration}ms, Bytes: $totalBytesRecorded")
+                debugLogger.d(TAG, "Recording completed. Duration: ${actualDuration}ms, Bytes: $totalBytesRecorded")
                 
                 RecordingResult(
                     success = true,
@@ -389,7 +404,7 @@ class AudioRecorder(private val context: Context) {
             }
             
         } catch (e: Exception) {
-            Log.e(TAG, "Error recording to file", e)
+            debugLogger.e(TAG, "Error recording to file: ${e.message}", e)
             RecordingResult(
                 success = false,
                 error = "Recording failed: ${e.message}"
@@ -434,7 +449,7 @@ class AudioRecorder(private val context: Context) {
             audioRec.startRecording()
             isRecording = true
             
-            Log.d(TAG, "Started recording audio data")
+            debugLogger.d(TAG, "Started recording audio data")
             
             val buffer = ByteArray(config.bufferSize)
             val audioData = mutableListOf<Byte>()
@@ -452,7 +467,7 @@ class AudioRecorder(private val context: Context) {
                     if (bytesRead > 0) {
                         audioData.addAll(buffer.sliceArray(0 until bytesRead).asList())
                     } else if (bytesRead < 0) {
-                        Log.e(TAG, "Error reading audio data: $bytesRead")
+                        debugLogger.w(TAG, "Error reading audio data (buffer): $bytesRead")
                         break
                     }
                 }
@@ -460,7 +475,7 @@ class AudioRecorder(private val context: Context) {
                 val actualDuration = System.currentTimeMillis() - startTime
                 val resultData = audioData.toByteArray()
                 
-                Log.d(TAG, "Audio data recording completed. Duration: ${actualDuration}ms, Bytes: ${resultData.size}")
+                debugLogger.d(TAG, "Audio data recording completed. Duration: ${actualDuration}ms, Bytes: ${resultData.size}")
                 
                 RecordingResult(
                     success = true,
@@ -474,7 +489,7 @@ class AudioRecorder(private val context: Context) {
             }
             
         } catch (e: Exception) {
-            Log.e(TAG, "Error recording audio data", e)
+            debugLogger.e(TAG, "Error recording audio data: ${e.message}", e)
             RecordingResult(
                 success = false,
                 error = "Recording failed: ${e.message}"
@@ -493,9 +508,14 @@ class AudioRecorder(private val context: Context) {
                 if (recordingState == AudioRecord.RECORDSTATE_RECORDING) {
                     stop()
                 }
+                // Critical fix: Always release resources
+                if (state == AudioRecord.STATE_INITIALIZED) {
+                    release()
+                }
             }
+            audioRecord = null
             
-            Log.d(TAG, "Stopped audio recording")
+            debugLogger.d(TAG, "Stopped audio recording and released resources")
         }
     }
     
@@ -506,7 +526,7 @@ class AudioRecorder(private val context: Context) {
         if (isRecording) {
             isRecording = false
             audioRecord?.stop()
-            Log.d(TAG, "Paused audio recording")
+            debugLogger.d(TAG, "Paused audio recording")
         }
     }
     
@@ -517,7 +537,7 @@ class AudioRecorder(private val context: Context) {
         if (!isRecording && audioRecord != null) {
             isRecording = true
             audioRecord?.startRecording()
-            Log.d(TAG, "Resumed audio recording")
+            debugLogger.d(TAG, "Resumed audio recording")
         }
     }
     
@@ -593,7 +613,7 @@ class AudioRecorder(private val context: Context) {
         configurationObserver.cleanup()
         recorderScope.cancel()
         
-        Log.d(TAG, "AudioRecorder cleaned up")
+    debugLogger.d(TAG, "AudioRecorder cleaned up")
     }
 }
 
@@ -601,7 +621,7 @@ class AudioRecorder(private val context: Context) {
  * Foreground service for continuous audio recording.
  * Provides persistent audio recording capabilities with proper lifecycle management.
  */
-class AudioRecordingService : Service() {
+    class AudioRecordingService : dagger.android.DaggerService() {
     
     companion object {
         private const val TAG = "AudioRecordingService"
@@ -660,7 +680,16 @@ class AudioRecordingService : Service() {
     }
     
     private val binder = AudioRecordingBinder()
-    private var audioRecorder: AudioRecorder? = null
+    @javax.inject.Inject
+    lateinit var audioRecorder: AudioRecorder
+    @javax.inject.Inject
+    lateinit var errorRecoverySystem: com.example.gloabtranslate.core.error.ErrorRecoverySystem
+    @javax.inject.Inject
+    lateinit var externalServiceStateReporter: com.example.gloabtranslate.core.external.ExternalServiceStateReporter
+    @javax.inject.Inject
+    lateinit var configurationManager: com.example.gloabtranslate.core.data.config.ConfigurationManager
+
+    private var audioConfigCollectionJob: Job? = null
     private var recordingJob: Job? = null
     private var isServiceRunning = false
     
@@ -701,15 +730,24 @@ class AudioRecordingService : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-        audioRecorder = AudioRecorder(this)
-        Log.d(TAG, "AudioRecordingService created")
+        // audioRecorder provided by DI
+        Log.d(TAG, "AudioRecordingService created (DI)")
+        externalServiceStateReporter.report(
+            com.example.gloabtranslate.core.external.ExternalServiceType.AUDIO_RECORDING,
+            com.example.gloabtranslate.core.external.ExternalServiceStatus.INITIALIZING
+        )
+        startAudioConfigCollection()
     }
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_START_RECORDING -> {
-                val config = intent.getParcelableExtra<AudioRecorder.RecordingConfig>(EXTRA_RECORDING_CONFIG)
-                    ?: AudioRecorder.RecordingConfig()
+                val config = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableExtra(EXTRA_RECORDING_CONFIG, AudioRecorder.RecordingConfig::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra<AudioRecorder.RecordingConfig>(EXTRA_RECORDING_CONFIG)
+                } ?: AudioRecorder.RecordingConfig()
                 val outputPath = intent.getStringExtra(EXTRA_OUTPUT_FILE)
                 val duration = intent.getLongExtra(EXTRA_DURATION_MS, 0L)
                 
@@ -734,9 +772,53 @@ class AudioRecordingService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         stopRecording()
-        audioRecorder?.cleanup()
+        audioRecorder.cleanup()
+        audioConfigCollectionJob?.cancel()
         isServiceRunning = false
         Log.d(TAG, "AudioRecordingService destroyed")
+        externalServiceStateReporter.report(
+            com.example.gloabtranslate.core.external.ExternalServiceType.AUDIO_RECORDING,
+            com.example.gloabtranslate.core.external.ExternalServiceStatus.STOPPED
+        )
+    }
+
+    private fun startAudioConfigCollection() {
+        if (audioConfigCollectionJob != null) return
+        audioConfigCollectionJob = CoroutineScope(Dispatchers.IO).launch {
+            var lastSampleRate: Int? = null
+            var lastNoiseReduction: Boolean? = null
+            var lastAudioQuality: String? = null
+            configurationManager.audioConfig.collect { cfg ->
+                try {
+                    val sampleChanged = lastSampleRate != null && lastSampleRate != cfg.sampleRate
+                    val nrChanged = lastNoiseReduction != null && lastNoiseReduction != cfg.enableNoiseReduction
+                    val qualityChanged = lastAudioQuality != null && lastAudioQuality != cfg.audioQuality
+                    lastSampleRate = cfg.sampleRate
+                    lastNoiseReduction = cfg.enableNoiseReduction
+                    lastAudioQuality = cfg.audioQuality
+                    if (isServiceRunning && audioRecorder.isRecording() && (sampleChanged || nrChanged || qualityChanged)) {
+                        Log.d(TAG, "Runtime audio config change detected (restart): sampleRate=${cfg.sampleRate}, noiseReduction=${cfg.enableNoiseReduction}, quality=${cfg.audioQuality}")
+                        safeRestartWithConfig(cfg)
+                    }
+                } catch (t: Throwable) {
+                    Log.e(TAG, "Failed applying audio config update", t)
+                }
+            }
+        }
+    }
+
+    private suspend fun safeRestartWithConfig(cfg: com.example.gloabtranslate.core.data.config.AudioConfig) {
+        // Capture current high-level recording parameters
+        val activeConfig = currentConfig ?: return
+        try {
+            pauseRecording()
+            // Map config changes into a new RecordingConfig (placeholder: sampleRate may be used internally already)
+            // For now we simply resume; deeper re-init would require exposing reconfigure() in AudioRecorder.
+            resumeRecording()
+        } catch (t: Throwable) {
+            Log.e(TAG, "Error during audio recorder restart for config update", t)
+            stateListener?.onRecordingError("Audio config update failed: ${t.message}")
+        }
     }
     
     /**
@@ -763,25 +845,51 @@ class AudioRecordingService : Service() {
         // Initialize and start recording
         recordingJob = CoroutineScope(Dispatchers.IO).launch {
             try {
-                val initResult = audioRecorder?.initialize(config)
-                if (initResult?.success == true) {
+                @Suppress("MissingPermission")
+                val recoveryResult = errorRecoverySystem.executeWithRecovery(
+                    source = com.example.gloabtranslate.core.error.ErrorRecoverySystem.ErrorSource.AUDIO_RECORDING,
+                    operation = {
+                        val initResult = audioRecorder.initialize(config)
+                        if (!initResult.success) {
+                            throw RuntimeException(initResult.error ?: "Initialization failed")
+                        }
+                        true
+                    },
+                    recoveryAction = {
+                        // Basic backoff before retrying initialization
+                        kotlinx.coroutines.delay(1000)
+                        true
+                    }
+                )
+                if (recoveryResult.isSuccess) {
                     isServiceRunning = true
                     stateListener?.onRecordingStarted()
-                    
+                    externalServiceStateReporter.report(
+                        com.example.gloabtranslate.core.external.ExternalServiceType.AUDIO_RECORDING,
+                        com.example.gloabtranslate.core.external.ExternalServiceStatus.READY
+                    )
                     if (outputFile != null && durationMs > 0) {
-                        // Record to file with duration
-                        val result = audioRecorder?.recordToFile(outputFile!!, durationMs, config)
-                        if (result?.success == true) {
+                        val result = audioRecorder.recordToFile(outputFile!!, durationMs, config)
+                        if (result.success) {
                             updateNotification("Recording completed")
                         } else {
-                            stateListener?.onRecordingError(result?.error ?: "Recording failed")
+                            stateListener?.onRecordingError(result.error ?: "Recording failed")
+                            externalServiceStateReporter.report(
+                                com.example.gloabtranslate.core.external.ExternalServiceType.AUDIO_RECORDING,
+                                com.example.gloabtranslate.core.external.ExternalServiceStatus.ERROR,
+                                result.error
+                            )
                         }
                     } else {
-                        // Continuous recording
                         startContinuousRecording(config)
                     }
                 } else {
-                    stateListener?.onRecordingError(initResult?.error ?: "Initialization failed")
+                    stateListener?.onRecordingError(recoveryResult.exceptionOrNull()?.message ?: "Initialization failed")
+                    externalServiceStateReporter.report(
+                        com.example.gloabtranslate.core.external.ExternalServiceType.AUDIO_RECORDING,
+                        com.example.gloabtranslate.core.external.ExternalServiceStatus.ERROR,
+                        recoveryResult.exceptionOrNull()?.message
+                    )
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error starting recording", e)
@@ -795,7 +903,7 @@ class AudioRecordingService : Service() {
      */
     private suspend fun startContinuousRecording(config: AudioRecorder.RecordingConfig) {
         try {
-            audioRecorder?.startRecording(config)?.collect { audioFrame ->
+            audioRecorder.startRecording(config).collect { audioFrame ->
                 // Handle continuous audio frames
                 // This could be extended to process audio in real-time
                 
@@ -826,7 +934,7 @@ class AudioRecordingService : Service() {
         if (!isServiceRunning) return
         
         recordingJob?.cancel()
-        audioRecorder?.stopRecording()
+    audioRecorder.stopRecording()
         isServiceRunning = false
         
         stateListener?.onRecordingStopped()
@@ -837,6 +945,10 @@ class AudioRecordingService : Service() {
         stopSelf()
         
         Log.d(TAG, "Recording stopped")
+        externalServiceStateReporter.report(
+            com.example.gloabtranslate.core.external.ExternalServiceType.AUDIO_RECORDING,
+            com.example.gloabtranslate.core.external.ExternalServiceStatus.STOPPED
+        )
     }
     
     /**
@@ -845,7 +957,7 @@ class AudioRecordingService : Service() {
     private fun pauseRecording() {
         if (!isServiceRunning) return
         
-        audioRecorder?.pauseRecording()
+    audioRecorder.pauseRecording()
         stateListener?.onRecordingPaused()
         updateNotification("Recording paused")
         
@@ -858,7 +970,7 @@ class AudioRecordingService : Service() {
     private fun resumeRecording() {
         if (!isServiceRunning) return
         
-        audioRecorder?.resumeRecording()
+    audioRecorder.resumeRecording()
         stateListener?.onRecordingResumed()
         updateNotification("Recording resumed")
         
@@ -871,7 +983,7 @@ class AudioRecordingService : Service() {
     fun getRecordingState(): String {
         return when {
             !isServiceRunning -> "STOPPED"
-            audioRecorder?.isRecording() == true -> "RECORDING"
+            audioRecorder.isRecording() -> "RECORDING"
             else -> "PAUSED"
         }
     }
@@ -885,7 +997,7 @@ class AudioRecordingService : Service() {
             "isRunning" to isServiceRunning,
             "elapsedMs" to elapsed,
             "durationMs" to durationMs,
-            "audioSessionId" to (audioRecorder?.getAudioSessionId() ?: -1),
+            "audioSessionId" to (audioRecorder.getAudioSessionId() ?: -1),
             "recordingState" to getRecordingState()
         )
     }

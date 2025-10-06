@@ -31,5 +31,5 @@ tasks.register("buildAll") {
 tasks.register("testAll") {
     group = "verification"
     description = "Run all tests"
-    dependsOn(":app:testDebugUnitTest", ":core:testDebugUnitTest", ":speech:testDebugUnitTest", ":nlp:testDebugUnitTest", ":tts:testDebugUnitTest")
+    dependsOn(":app:testDevelopmentDebugUnitTest", ":core:testDebugUnitTest", ":speech:testDebugUnitTest", ":nlp:testDebugUnitTest", ":tts:testDebugUnitTest")
 }

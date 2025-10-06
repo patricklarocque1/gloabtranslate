@@ -25,12 +25,20 @@ import kotlin.coroutines.resumeWithException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
+import com.example.gloabtranslate.core.logging.DebugLogger
 
 /**
  * Continuous translation pipeline for real-time speech translation.
  * Handles language detection, translation, caching, and batch processing.
  */
-class TranslationPipeline(private val context: Context) {
+class TranslationPipeline(
+    private val context: Context,
+    private val modelManager: ModelManager,
+    private val configurationManager: com.example.gloabtranslate.core.data.config.ConfigurationManager,
+    private val historyRepository: com.example.gloabtranslate.core.data.repository.TranslationHistoryRepository,
+    private val errorRecoverySystem: com.example.gloabtranslate.core.error.ErrorRecoverySystem,
+    private val debugLogger: DebugLogger // injected
+) {
     
     companion object {
         private const val TAG = "TranslationPipeline"
@@ -42,7 +50,7 @@ class TranslationPipeline(private val context: Context) {
     }
     
     // Core components
-    private val modelManager by lazy { ModelManager.getInstance(context) }
+    // ModelManager is now injected via constructor
     private var languageIdentifier: LanguageIdentifier? = null
     private val activeTranslators = ConcurrentHashMap<String, Translator>()
     
@@ -57,7 +65,7 @@ class TranslationPipeline(private val context: Context) {
     private val batchScope = CoroutineScope(Dispatchers.IO + batchJob)
     
     // Caching
-    private val translationCache = ConcurrentHashMap<String, TranslationResult>()
+    private val translationCache = TranslationCache(CACHE_SIZE)
     private val languageDetectionCache = ConcurrentHashMap<String, String>()
     
     // Configuration
@@ -68,8 +76,7 @@ class TranslationPipeline(private val context: Context) {
     private val configurationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var configurationJob: Job? = null
     private var confidenceThreshold = MIN_CONFIDENCE_THRESHOLD
-    private val configurationManager = ConfigurationManager.getInstance(context)
-    private val historyRepository = TranslationHistoryRepository.getInstance(context)
+    // ConfigurationManager and HistoryRepository are now injected via constructor
     private var historyEnabled = true
 
     
@@ -152,7 +159,7 @@ class TranslationPipeline(private val context: Context) {
             isInitialized.set(true)
             startConfigurationObservers()
 
-            Log.d(TAG, "TranslationPipeline initialized successfully")
+            debugLogger.d(TAG, "TranslationPipeline initialized successfully")
             TranslationResult(
                 success = true,
                 originalText = "Translation pipeline initialized",
@@ -161,7 +168,7 @@ class TranslationPipeline(private val context: Context) {
             )
             
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to initialize TranslationPipeline", e)
+            debugLogger.e(TAG, "Failed to initialize TranslationPipeline: ${e.message}", e)
             TranslationResult(
                 success = false,
                 error = "Initialization failed: ${e.message}",
@@ -232,9 +239,9 @@ class TranslationPipeline(private val context: Context) {
 
             if (enableCaching && !isPartial) {
                 val cacheKey = generateCacheKey(text, sourceLang, targetLang)
-                val cachedResult = translationCache[cacheKey]
+                val cachedResult = translationCache.get(cacheKey)
                 if (cachedResult != null) {
-                    Log.d(TAG, "Cache hit for: $text")
+                    debugLogger.d(TAG, "Cache hit for: $text")
                     return@withContext cachedResult.copy(timestamp = System.currentTimeMillis())
                 }
             }
@@ -245,18 +252,37 @@ class TranslationPipeline(private val context: Context) {
                 sourceLang
             }
 
-            val translationResult = translateText(text, detectedSourceLang, targetLang, isPartial)
+            val translationResult = errorRecoverySystem.executeWithRecovery(
+                source = com.example.gloabtranslate.core.error.ErrorRecoverySystem.ErrorSource.TRANSLATION_SERVICE,
+                operation = {
+                    translateText(text, detectedSourceLang, targetLang, isPartial)
+                },
+                recoveryAction = {
+                    // small delay before retry to mitigate transient translator issues
+                    delay(300)
+                    true
+                }
+            ).getOrElse { err ->
+                return@withContext TranslationResult(
+                    success = false,
+                    originalText = text,
+                    sourceLanguage = detectedSourceLang,
+                    targetLanguage = targetLang,
+                    error = "Translation failed: ${err.message}",
+                    timestamp = System.currentTimeMillis()
+                )
+            }
 
             if (enableCaching && translationResult.success && !isPartial) {
                 val cacheKey = generateCacheKey(text, detectedSourceLang, targetLang)
-                cacheTranslationResult(cacheKey, translationResult)
+                translationCache.put(cacheKey, translationResult)
             }
 
             if (historyEnabled && translationResult.success && !translationResult.isPartial) {
                 try {
                     historyRepository.addTranslation(translationResult)
                 } catch (e: Exception) {
-                    Log.w(TAG, "Failed to save translation to history", e)
+                    debugLogger.w(TAG, "Failed to save translation to history: ${e.message}")
                 }
             }
 
@@ -264,7 +290,7 @@ class TranslationPipeline(private val context: Context) {
             translationResult
 
         } catch (e: Exception) {
-            Log.e(TAG, "Error processing text", e)
+            debugLogger.e(TAG, "Error processing text: ${e.message}", e)
             TranslationResult(
                 success = false,
                 error = "Processing failed: ${e.message}",
@@ -277,24 +303,29 @@ class TranslationPipeline(private val context: Context) {
         if (configurationJob != null) return
         configurationJob = configurationScope.launch {
             configurationManager.translationConfig
-                .combine(configurationManager.performanceConfig) { translation, performance ->
+                .combine(configurationManager.performanceConfig) { translation: com.example.gloabtranslate.core.data.config.TranslationConfig, performance: com.example.gloabtranslate.core.data.config.PerformanceConfig ->
                     translation to performance
                 }
-                .collectLatest { (translation, performance) ->
+                .collectLatest { (translation: com.example.gloabtranslate.core.data.config.TranslationConfig, performance: com.example.gloabtranslate.core.data.config.PerformanceConfig) ->
                     applyConfigurationUpdates(translation, performance, translation.confidenceThreshold)
                 }
         }
     }
 
     private fun applyConfigurationUpdates(
-        translation: TranslationConfig,
-        performance: PerformanceConfig,
+        translation: com.example.gloabtranslate.core.data.config.TranslationConfig,
+        performance: com.example.gloabtranslate.core.data.config.PerformanceConfig,
         rawConfidence: Float
     ) {
         historyEnabled = translation.enableHistory
         defaultSourceLanguage = translation.defaultSourceLanguage
         defaultTargetLanguage = translation.defaultTargetLanguage
+        val prevCaching = enableCaching
         enableCaching = performance.enableCaching
+        translationCache.resize(performance.cacheSize)
+        if (!enableCaching && prevCaching) {
+            translationCache.clear()
+        }
 
         val updatedConfidence = rawConfidence.coerceAtLeast(MIN_CONFIDENCE_THRESHOLD)
         if (updatedConfidence != confidenceThreshold || languageIdentifier == null) {
@@ -492,7 +523,22 @@ class TranslationPipeline(private val context: Context) {
         val key = "${sourceLanguage}_$targetLanguage"
         
         return activeTranslators[key] ?: run {
-            modelManager.ensureLanguagePairAvailable(sourceLanguage, targetLanguage)
+            // Wrap model availability in recovery system (model downloads / availability checks can fail transiently)
+            errorRecoverySystem.executeWithRecovery(
+                source = com.example.gloabtranslate.core.error.ErrorRecoverySystem.ErrorSource.TRANSLATION_SERVICE,
+                operation = {
+                    modelManager.ensureLanguagePairAvailable(sourceLanguage, targetLanguage)
+                    true
+                },
+                recoveryAction = {
+                    // Brief backoff before retrying model ensure
+                    delay(500)
+                    true
+                }
+            ).onFailure { e ->
+                Log.e(TAG, "Model ensure failed for $sourceLanguage->$targetLanguage: ${e.message}")
+                throw e
+            }
             val options = TranslatorOptions.Builder()
                 .setSourceLanguage(sourceLanguage)
                 .setTargetLanguage(targetLanguage)
@@ -584,14 +630,8 @@ class TranslationPipeline(private val context: Context) {
      * Caches translation result
      */
     private fun cacheTranslationResult(key: String, result: TranslationResult) {
-        if (translationCache.size >= CACHE_SIZE) {
-            // Remove oldest entry (simple LRU)
-            val oldestKey = translationCache.keys.firstOrNull()
-            if (oldestKey != null) {
-                translationCache.remove(oldestKey)
-            }
-        }
-        translationCache[key] = result
+        // Kept for backward compatibility (invocations above moved). Could be removed later.
+        translationCache.put(key, result)
     }
     
     /**
@@ -667,17 +707,18 @@ class TranslationPipeline(private val context: Context) {
      * Gets pipeline statistics
      */
     fun getStats(): PipelineStats {
-        val cacheHits = translationCache.size.toLong()
-        val cacheMisses = translationCounter.get() - cacheHits
+    val stats = translationCache.stats()
+    val cacheHits = stats.hits
+    val cacheMisses = stats.misses
         
-        return PipelineStats(
+    return PipelineStats(
             totalTranslations = translationCounter.get(),
             cacheHits = cacheHits,
             cacheMisses = cacheMisses,
             batchProcessingCount = 0, // TODO: Track batch processing count
             averageProcessingTime = 0.0, // TODO: Track processing times
             activeTranslators = activeTranslators.size,
-            cacheSize = translationCache.size,
+            cacheSize = stats.size,
             isInitialized = isInitialized.get(),
             isProcessing = isProcessing.get()
         )

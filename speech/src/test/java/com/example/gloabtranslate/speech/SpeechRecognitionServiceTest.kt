@@ -101,7 +101,7 @@ class SpeechRecognitionServiceTest {
         val result = service.recognizeSpeech()
 
         assertFalse(result.success)
-        assertEquals("Speech recognition not initialized", result.error)
+    assertEquals("Speech recognition not initialized or unavailable", result.error)
     }
 
     @Test
@@ -120,7 +120,7 @@ class SpeechRecognitionServiceTest {
         val result = service.startContinuousRecognition().first()
 
         assertFalse(result.success)
-        assertEquals("Speech recognition not initialized", result.error)
+    assertEquals("Speech recognition not initialized or unavailable", result.error)
     }
 
     @Test

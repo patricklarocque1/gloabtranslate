@@ -30,7 +30,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.gloabtranslate.R
 import com.example.gloabtranslate.core.data.repository.TranslationHistoryRepository
+import com.example.gloabtranslate.core.data.repository.TranslationRepository
+import com.example.gloabtranslate.speech.SpeechRecognitionService
 import dagger.android.support.AndroidSupportInjection
+import javax.inject.Inject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
@@ -39,6 +42,15 @@ import kotlinx.coroutines.flow.*
  * confidence visualization, and transcription management.
  */
 class TranscriptionFragment : Fragment() {
+
+    @Inject
+    lateinit var speechRecognitionService: SpeechRecognitionService
+
+    @Inject
+    lateinit var translationRepository: TranslationRepository
+
+    @Inject
+    lateinit var translationHistoryRepository: TranslationHistoryRepository
     
     override fun onAttach(context: android.content.Context) {
         AndroidSupportInjection.inject(this)
@@ -306,7 +318,7 @@ class TranscriptionFragment : Fragment() {
                 true
             }
             R.id.action_settings -> {
-                // TODO: Hook up transcription settings screen when available
+                showTranscriptionSettings()
                 true
             }
             else -> false
@@ -452,6 +464,50 @@ class TranscriptionFragment : Fragment() {
         } else {
             Toast.makeText(requireContext(), getString(R.string.no_transcription_to_export), Toast.LENGTH_SHORT).show()
         }
+    }
+    
+    private fun showTranscriptionSettings() {
+        val settingsOptions = arrayOf(
+            "Audio Quality",
+            "Auto-save",
+            "Language Detection",
+            "Punctuation",
+            "Display Options"
+        )
+        
+        AlertDialog.Builder(requireContext())
+            .setTitle("Transcription Settings")
+            .setItems(settingsOptions) { _, which ->
+                when (which) {
+                    0 -> showAudioQualitySettings()
+                    1 -> toggleAutoSave()
+                    2 -> toggleLanguageDetection()
+                    3 -> togglePunctuation()
+                    4 -> showDisplayOptions()
+                }
+            }
+            .setNegativeButton("Close", null)
+            .show()
+    }
+    
+    private fun showAudioQualitySettings() {
+        Toast.makeText(requireContext(), "Audio quality settings", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun toggleAutoSave() {
+        Toast.makeText(requireContext(), "Auto-save toggled", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun toggleLanguageDetection() {
+        Toast.makeText(requireContext(), "Language detection toggled", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun togglePunctuation() {
+        Toast.makeText(requireContext(), "Punctuation toggled", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun showDisplayOptions() {
+        Toast.makeText(requireContext(), "Display options", Toast.LENGTH_SHORT).show()
     }
     
     private fun copyTranscription() {

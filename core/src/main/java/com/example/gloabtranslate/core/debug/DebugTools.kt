@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 object DebugTools {
     private const val TAG = "DebugTools"
     private val debugEnabled = AtomicBoolean(false)
+    private val analyticsEnabled = AtomicBoolean(false)
 
     fun setEnabled(enabled: Boolean) {
         if (debugEnabled.getAndSet(enabled) != enabled) {
@@ -17,4 +18,12 @@ object DebugTools {
     }
 
     fun isEnabled(): Boolean = debugEnabled.get()
+
+    fun setAnalyticsEnabled(enabled: Boolean) {
+        if (analyticsEnabled.getAndSet(enabled) != enabled) {
+            Log.i(TAG, "Analytics ${if (enabled) "enabled" else "disabled"}")
+        }
+    }
+
+    fun isAnalyticsEnabled(): Boolean = analyticsEnabled.get()
 }
