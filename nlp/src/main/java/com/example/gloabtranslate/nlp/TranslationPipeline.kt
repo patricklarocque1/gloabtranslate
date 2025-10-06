@@ -711,7 +711,7 @@ class TranslationPipeline(
     val cacheHits = stats.hits
     val cacheMisses = stats.misses
         
-        return PipelineStats(
+    return PipelineStats(
             totalTranslations = translationCounter.get(),
             cacheHits = cacheHits,
             cacheMisses = cacheMisses,

@@ -3,6 +3,7 @@ package com.example.gloabtranslate.speech
 import android.content.Context
 import com.example.gloabtranslate.core.data.config.ConfigurationManager
 import com.example.gloabtranslate.core.data.preferences.UserPreferencesManager
+import com.example.gloabtranslate.core.logging.DebugLogger
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
@@ -25,12 +26,14 @@ class AudioPreferencesObserverTest {
     private lateinit var context: Context
     private lateinit var preferencesManager: UserPreferencesManager
     private lateinit var configurationManager: ConfigurationManager
+    private lateinit var debugLogger: DebugLogger
 
     @Before
     fun setUp() = runTest {
         context = RuntimeEnvironment.getApplication()
-    preferencesManager = UserPreferencesManager.getInstance(context)
-    configurationManager = ConfigurationManager(preferencesManager)
+        preferencesManager = UserPreferencesManager.getInstance(context)
+        configurationManager = ConfigurationManager(preferencesManager)
+        debugLogger = DebugLogger(configurationManager)
         preferencesManager.initialize()
         preferencesManager.resetPreferences()
     }
@@ -42,7 +45,7 @@ class AudioPreferencesObserverTest {
 
     @Test
     fun audioRecorderTracksUpdatedPreferencesWithoutReinitialize() = runTest {
-        val recorder = AudioRecorder(context, configurationManager)
+        val recorder = AudioRecorder(context, configurationManager, debugLogger)
         val initial = recorder.getRecordingConfig()
         assertEquals(16000, initial.sampleRate)
 
