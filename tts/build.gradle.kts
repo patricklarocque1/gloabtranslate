@@ -5,12 +5,23 @@ plugins {
 
 android {
     namespace = "com.example.gloabtranslate.tts"
-    compileSdk = 36
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 34
+        minSdk = libs.versions.minSdk.get().toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+    }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+        targetSdk = libs.versions.targetSdk.get().toInt()
+    }
+
+    lint {
+        targetSdk = libs.versions.targetSdk.get().toInt()
     }
 
     buildTypes {
@@ -64,10 +75,19 @@ dependencies {
     
     // Test dependencies
     testImplementation(libs.junit)
-    testImplementation("io.mockk:mockk:1.13.8") // MockK for Kotlin testing
-    testImplementation("org.robolectric:robolectric:4.13") // Robolectric for Android unit tests
+    testImplementation(libs.mockk) // MockK for Kotlin testing
+    testImplementation(libs.robolectric) // Robolectric for Android unit tests
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotlin.test.junit) // For kotlin.test assertions
+    testImplementation(libs.truth)
+    testImplementation(libs.hamcrest)
+    
+    // Android test dependencies
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.mockk)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.test.rules)
+    androidTestImplementation(libs.test.runner)
+    androidTestImplementation(libs.truth)
 }

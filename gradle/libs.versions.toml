@@ -1,6 +1,11 @@
 [versions]
+# Core Build Tooling
+# Gradle 9.1.0 is the latest stable release (Supports Java 25)
+# Note: This version is set in gradle/wrapper/gradle-wrapper.properties
+# gradle = "9.1.0" # This line is often excluded but useful for reference
+
 # Android Gradle Plugin
-agp = "8.9.1"
+agp = "8.13.0"
 
 # Android SDK versions
 compileSdk = "36"
@@ -15,12 +20,16 @@ junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 appcompat = "1.7.1"
 material = "1.13.0"
-uiautomator = "2.2.0"
-benchmarkMacroJunit4 = "1.2.0-beta01"
+uiautomator = "2.3.0"
+benchmarkMacroJunit4 = "1.4.1"
 
 # Kotlin
 kotlin = "2.2.20"
 kotlinCompiler = "2.2.20"
+
+# Compose
+compose-bom = "2025.01.00"
+compose-activity = "1.11.0"
 
 # Kotlin Coroutines (confirmed latest stable as of Aug 30, 2024)
 coroutines = "1.10.2"
@@ -30,7 +39,7 @@ mlkit-translate = "17.0.3"
 mlkit-language-id = "17.0.6"
 
 # Media3 dependencies (confirmed latest stable as of Aug 9, 2024)
-media3 = "1.6.1"
+media3 = "1.8.0"
 
 # Lifecycle dependencies (confirmed latest as of Aug 9, 2024)
 lifecycle = "2.9.4"
@@ -45,18 +54,22 @@ kotlinx-serialization-json = "1.6.0"
 # Testing dependencies
 mockito = "5.8.0"
 mockito-kotlin = "5.3.1"
-test-rules = "1.6.1"
-test-runner = "1.6.2"
+mockito-inline = "4.5.1"
+mockk = "1.13.8" # Added MockK version
+test-rules = "1.7.0"
+test-runner = "1.7.0"
 robolectric = "4.16" # Added Robolectric version
+truth = "1.1.3" # Google Truth testing library
+hamcrest = "2.2" # Hamcrest matchers
 
 # Security and encryption
-security-crypto = "1.1.0-alpha06"
+security-crypto = "1.1.0"
 
 # Room database (if needed)
 room = "2.8.1"
 
 # Navigation
-navigation = "2.8.8"
+navigation = "2.9.5"
 
 # Work Manager
 work = "2.10.5"
@@ -79,6 +92,7 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-espresso-idling-resource = { group = "androidx.test.espresso", name = "espresso-idling-resource", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
@@ -87,6 +101,16 @@ androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchm
 # Kotlin Coroutines
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+
+# Compose BOM and libraries
+compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
+compose-ui = { group = "androidx.compose.ui", name = "ui" }
+compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+compose-activity = { group = "androidx.activity", name = "activity-compose", version.ref = "compose-activity" }
 
 # ML Kit libraries (confirmed latest versions)
 mlkit-translate = { group = "com.google.mlkit", name = "translate", version.ref = "mlkit-translate" }
@@ -111,12 +135,16 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 # Testing libraries
 mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
 mockito-android = { group = "org.mockito", name = "mockito-android", version.ref = "mockito" }
+mockito-inline = { group = "org.mockito", name = "mockito-inline", version.ref = "mockito-inline" }
 mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockito-kotlin" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" } # Added MockK library
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 test-rules = { group = "androidx.test", name = "rules", version.ref = "test-rules" }
 test-runner = { group = "androidx.test", name = "runner", version.ref = "test-runner" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" } # Added Robolectric library
 kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin" } # Added kotlin-test-junit
+truth = { group = "com.google.truth", name = "truth", version.ref = "truth" } # Google Truth testing library
+hamcrest = { group = "org.hamcrest", name = "hamcrest", version.ref = "hamcrest" } # Hamcrest matchers
 
 # Security libraries
 security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "security-crypto" }

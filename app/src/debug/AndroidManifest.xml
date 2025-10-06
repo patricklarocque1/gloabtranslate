@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Add this to app/src/debug/AndroidManifest.xml for debug builds only -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     
     <!-- Debug-only TTS Test Activity -->

@@ -31,7 +31,7 @@ abstract class TranslationHistoryDatabase : RoomDatabase() {
                 context,
                 TranslationHistoryDatabase::class.java,
                 "translation_history.db"
-            ).fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
+            ).fallbackToDestructiveMigrationOnDowngrade()
                 .build()
         }
     }

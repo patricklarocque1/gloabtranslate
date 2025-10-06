@@ -2,6 +2,7 @@ package com.example.gloabtranslate.core.data.repository
 
 import android.content.Context
 import android.util.Log
+import androidx.sqlite.db.SimpleSQLiteQuery
 import com.example.gloabtranslate.core.data.local.db.TranslationHistoryDao
 import com.example.gloabtranslate.core.data.local.db.TranslationHistoryDatabase
 import com.example.gloabtranslate.core.data.local.db.TranslationHistoryEntity
@@ -11,6 +12,8 @@ import com.example.gloabtranslate.core.data.models.TranslationResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,6 +46,8 @@ class TranslationHistoryRepository private constructor(private val context: Cont
         private const val MAX_BACKUP_FILES = 20
         private const val MAX_HISTORY_ENTRIES = 10000
         private const val CLEANUP_THRESHOLD = 0.8f // Clean up when 80% full
+    private const val DEFAULT_RETENTION_DAYS = 30
+    private const val MAX_RETENTION_DAYS = 365
         
         @Volatile
         private var INSTANCE: TranslationHistoryRepository? = null
@@ -69,14 +74,13 @@ class TranslationHistoryRepository private constructor(private val context: Cont
     // State management
     private val isInitialized = AtomicBoolean(false)
     private val repositoryMutex = Mutex()
-    private val translationHistory = ConcurrentHashMap<String, TranslationHistoryEntry>()
     
-    // Statistics
+    // Statistics - derived from database, not cached
     private val totalTranslations = AtomicLong(0)
     private val successfulTranslations = AtomicLong(0)
     private val failedTranslations = AtomicLong(0)
     
-    // State flows for reactive updates
+    // State flows for reactive updates - sourced directly from Room
     private val _historyFlow = MutableStateFlow<List<TranslationHistoryEntry>>(emptyList())
     val historyFlow: Flow<List<TranslationHistoryEntry>> = _historyFlow.asStateFlow()
     
@@ -208,11 +212,12 @@ class TranslationHistoryRepository private constructor(private val context: Cont
         try {
             var historySize = 0
             var shouldStartObservation = false
+            var shouldStartRetention = false
 
             repositoryMutex.withLock {
                 if (isInitialized.get()) {
                     Log.w(TAG, "TranslationHistoryRepository already initialized")
-                    historySize = translationHistory.size
+                    historySize = dao.count().toInt()
                     return@withLock
                 }
 
@@ -220,13 +225,18 @@ class TranslationHistoryRepository private constructor(private val context: Cont
                 migrateLegacyHistoryFromFile()
                 loadHistoryFromDatabase()
 
-                historySize = translationHistory.size
+                historySize = dao.count().toInt()
                 shouldStartObservation = true
+                shouldStartRetention = true
             }
 
             if (shouldStartObservation) {
                 startObservingDao()
                 Log.d(TAG, "TranslationHistoryRepository initialized with $historySize entries")
+            }
+
+            if (shouldStartRetention) {
+                scheduleRetentionJob()
             }
 
             true
@@ -262,12 +272,11 @@ class TranslationHistoryRepository private constructor(private val context: Cont
                 )
                 
                 dao.upsert(entry.toEntity())
-                translationHistory[entry.id] = entry
-
-                updateFlows()
+                // No need to manually update cache - Room observer will handle this
                 
-                // Check if cleanup is needed
-                if (translationHistory.size >= MAX_HISTORY_ENTRIES * CLEANUP_THRESHOLD) {
+                // Check if cleanup is needed based on database count
+                val currentCount = dao.count()
+                if (currentCount >= MAX_HISTORY_ENTRIES * CLEANUP_THRESHOLD) {
                     performCleanup()
                 }
                 
@@ -286,24 +295,12 @@ class TranslationHistoryRepository private constructor(private val context: Cont
     suspend fun getTranslationHistory(criteria: SearchCriteria = SearchCriteria()): List<TranslationHistoryEntry> = withContext(Dispatchers.IO) {
         try {
             repositoryMutex.withLock {
-                var filteredEntries = translationHistory.values.toList()
-                
-                // Apply filters
-                filteredEntries = applyFilters(filteredEntries, criteria)
-                
-                // Apply sorting
-                filteredEntries = applySorting(filteredEntries, criteria.sortBy)
-                
-                // Apply limit
-                if (criteria.limit != null && criteria.limit > 0) {
-                    filteredEntries = filteredEntries.take(criteria.limit)
-                }
-                
-                filteredEntries
+                val query = buildSearchQuery(criteria)
+                dao.getHistoryFiltered(query).map { it.toRepositoryModel() }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to get translation history", e)
-            emptyList()
+            emptyList<TranslationHistoryEntry>()
         }
     }
     
@@ -313,7 +310,7 @@ class TranslationHistoryRepository private constructor(private val context: Cont
     suspend fun getTranslationById(id: String): TranslationHistoryEntry? = withContext(Dispatchers.IO) {
         try {
             repositoryMutex.withLock {
-                translationHistory[id]
+                dao.getById(id)?.toRepositoryModel()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to get translation by ID: $id", e)
@@ -327,11 +324,11 @@ class TranslationHistoryRepository private constructor(private val context: Cont
     suspend fun updateTranslation(entry: TranslationHistoryEntry): Boolean = withContext(Dispatchers.IO) {
         try {
             repositoryMutex.withLock {
-                if (!translationHistory.containsKey(entry.id)) return@withLock false
+                val existingEntry = dao.getById(entry.id)
+                if (existingEntry == null) return@withLock false
 
                 dao.upsert(entry.toEntity())
-                translationHistory[entry.id] = entry
-                updateFlows()
+                // No need to manually update cache - Room observer will handle this
                 true
             }
         } catch (e: Exception) {
@@ -348,8 +345,7 @@ class TranslationHistoryRepository private constructor(private val context: Cont
             repositoryMutex.withLock {
                 val rows = dao.deleteById(id)
                 if (rows > 0) {
-                    translationHistory.remove(id)
-                    updateFlows()
+                    // No need to manually update cache - Room observer will handle this
                     Log.d(TAG, "Translation deleted: $id")
                     true
                 } else false
@@ -367,10 +363,7 @@ class TranslationHistoryRepository private constructor(private val context: Cont
         try {
             repositoryMutex.withLock {
                 val deletedCount = dao.deleteByIds(ids)
-                if (deletedCount > 0) {
-                    ids.forEach { translationHistory.remove(it) }
-                    updateFlows()
-                }
+                // No need to manually update cache - Room observer will handle this
                 deletedCount
             }
         } catch (e: Exception) {
@@ -386,12 +379,11 @@ class TranslationHistoryRepository private constructor(private val context: Cont
         try {
             repositoryMutex.withLock {
                 dao.clear()
-                translationHistory.clear()
+                // Reset statistics counters
                 totalTranslations.set(0)
                 successfulTranslations.set(0)
                 failedTranslations.set(0)
-
-                updateFlows()
+                // No need to manually update flows - Room observer will handle this
 
                 Log.d(TAG, "All translation history cleared")
                 true
@@ -423,11 +415,9 @@ class TranslationHistoryRepository private constructor(private val context: Cont
     suspend fun searchTranslations(query: String): List<TranslationHistoryEntry> = withContext(Dispatchers.IO) {
         try {
             repositoryMutex.withLock {
-                val lowercaseQuery = query.lowercase()
-                translationHistory.values.filter { entry ->
-                    entry.originalText.lowercase().contains(lowercaseQuery) ||
-                    entry.translatedText?.lowercase()?.contains(lowercaseQuery) == true
-                }.sortedByDescending { it.timestamp }
+                val criteria = SearchCriteria(query = query)
+                val searchQuery = buildSearchQuery(criteria)
+                dao.getHistoryFiltered(searchQuery).map { it.toRepositoryModel() }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to search translations", e)
@@ -455,19 +445,20 @@ class TranslationHistoryRepository private constructor(private val context: Cont
                 
                 val exportFile = File(exportDir, fileName)
                 
+                val allEntries = dao.getHistory().map { it.toRepositoryModel() }
                 when (format) {
                     ExportFormat.JSON -> {
                         val exportData = mapOf(
                             "export_timestamp" to timestamp,
-                            "total_entries" to translationHistory.size,
-                            "translations" to translationHistory.values.toList()
+                            "total_entries" to allEntries.size,
+                            "translations" to allEntries
                         )
                         exportFile.writeText(json.encodeToString(exportData))
                     }
                     ExportFormat.CSV -> {
                         val csvContent = buildString {
                             appendLine("ID,Original Text,Translated Text,Source Language,Target Language,Confidence,Success,Timestamp,Favorite")
-                            translationHistory.values.forEach { entry ->
+                            allEntries.forEach { entry ->
                                 appendLine("${entry.id},\"${entry.originalText}\",\"${entry.translatedText}\",${entry.sourceLanguage},${entry.targetLanguage},${entry.confidence},${entry.success},${entry.timestamp},${entry.favorite}")
                             }
                         }
@@ -477,11 +468,11 @@ class TranslationHistoryRepository private constructor(private val context: Cont
                         val txtContent = buildString {
                             appendLine("Translation History Export")
                             appendLine("Generated: ${java.util.Date(timestamp)}")
-                            appendLine("Total Entries: ${translationHistory.size}")
+                            appendLine("Total Entries: ${allEntries.size}")
                             appendLine("=".repeat(50))
                             appendLine()
                             
-                            translationHistory.values.sortedByDescending { it.timestamp }.forEach { entry ->
+                            allEntries.sortedByDescending { it.timestamp }.forEach { entry ->
                                 appendLine("ID: ${entry.id}")
                                 appendLine("Original: ${entry.originalText}")
                                 appendLine("Translated: ${entry.translatedText}")
@@ -510,10 +501,10 @@ class TranslationHistoryRepository private constructor(private val context: Cont
     /**
      * Gets repository statistics
      */
-    fun getRepositoryStatistics(): Map<String, Any> {
+    suspend fun getRepositoryStatistics(): Map<String, Any> {
         return mapOf(
             "isInitialized" to isInitialized.get(),
-            "totalEntries" to translationHistory.size,
+            "totalEntries" to dao.count(),
             "totalTranslations" to totalTranslations.get(),
             "successfulTranslations" to successfulTranslations.get(),
             "failedTranslations" to failedTranslations.get(),
@@ -527,58 +518,85 @@ class TranslationHistoryRepository private constructor(private val context: Cont
         return "translation_${UUID.randomUUID()}"
     }
     
-    private fun applyFilters(entries: List<TranslationHistoryEntry>, criteria: SearchCriteria): List<TranslationHistoryEntry> {
-        return entries.filter { entry ->
-            val matchesQuery = criteria.query?.lowercase()?.let { query ->
-                entry.originalText.lowercase().contains(query) ||
-                    entry.translatedText?.lowercase()?.contains(query) == true
-            } ?: true
+    private fun buildSearchQuery(criteria: SearchCriteria): SimpleSQLiteQuery {
+        val query = StringBuilder("SELECT * FROM translation_history")
+        val conditions = mutableListOf<String>()
+        val args = mutableListOf<Any>()
 
-            val matchesSource = criteria.sourceLanguage?.let { entry.sourceLanguage == it } ?: true
-            val matchesTarget = criteria.targetLanguage?.let { entry.targetLanguage == it } ?: true
-
-            val matchesFrom = criteria.dateFrom?.let { entry.timestamp >= it } ?: true
-            val matchesTo = criteria.dateTo?.let { entry.timestamp <= it } ?: true
-
-            val matchesFavorite = if (criteria.favoriteOnly) entry.favorite else true
-            val matchesSuccess = if (criteria.successfulOnly) entry.success else true
-            val matchesOnDevice = if (criteria.onDeviceOnly) entry.isOnDevice else true
-
-            val matchesMinConfidence = criteria.minConfidence?.let { threshold ->
-                entry.confidence?.let { it >= threshold } ?: false
-            } ?: true
-
-            val matchesMaxConfidence = criteria.maxConfidence?.let { threshold ->
-                entry.confidence?.let { it <= threshold } ?: false
-            } ?: true
-
-            val matchesTags = criteria.tags?.let { tags ->
-                tags.all { tag -> entry.tags.contains(tag) }
-            } ?: true
-
-            matchesQuery && matchesSource && matchesTarget &&
-                matchesFrom && matchesTo && matchesFavorite &&
-                matchesSuccess && matchesOnDevice && matchesMinConfidence &&
-                matchesMaxConfidence && matchesTags
+        criteria.query?.let {
+            conditions.add("(originalText LIKE ? OR translatedText LIKE ?)")
+            args.add("%${it.lowercase()}%" )
+            args.add("%${it.lowercase()}%")
         }
-    }
-    
-    private fun applySorting(entries: List<TranslationHistoryEntry>, sortBy: SortBy): List<TranslationHistoryEntry> {
-        return when (sortBy) {
-            SortBy.TIMESTAMP_DESC -> entries.sortedByDescending { it.timestamp }
-            SortBy.TIMESTAMP_ASC -> entries.sortedBy { it.timestamp }
-            SortBy.CONFIDENCE_DESC -> entries.sortedByDescending { it.confidence ?: 0f }
-            SortBy.CONFIDENCE_ASC -> entries.sortedBy { it.confidence ?: 0f }
-            SortBy.DURATION_DESC -> entries.sortedByDescending { it.duration }
-            SortBy.DURATION_ASC -> entries.sortedBy { it.duration }
-            SortBy.ALPHABETICAL_ASC -> entries.sortedBy { it.originalText }
-            SortBy.ALPHABETICAL_DESC -> entries.sortedByDescending { it.originalText }
+
+        criteria.sourceLanguage?.let {
+            conditions.add("sourceLanguage = ?")
+            args.add(it)
         }
+
+        criteria.targetLanguage?.let {
+            conditions.add("targetLanguage = ?")
+            args.add(it)
+        }
+
+        criteria.dateFrom?.let {
+            conditions.add("timestamp >= ?")
+            args.add(it)
+        }
+
+        criteria.dateTo?.let {
+            conditions.add("timestamp <= ?")
+            args.add(it)
+        }
+
+        if (criteria.favoriteOnly) {
+            conditions.add("favorite = 1")
+        }
+
+        if (criteria.successfulOnly) {
+            conditions.add("success = 1")
+        }
+
+        if (criteria.onDeviceOnly) {
+            conditions.add("isOnDevice = 1")
+        }
+
+        criteria.minConfidence?.let {
+            conditions.add("confidence >= ?")
+            args.add(it)
+        }
+
+        criteria.maxConfidence?.let {
+            conditions.add("confidence <= ?")
+            args.add(it)
+        }
+
+        if (conditions.isNotEmpty()) {
+            query.append(" WHERE ").append(conditions.joinToString(" AND "))
+        }
+
+        query.append(" ORDER BY ").append(when (criteria.sortBy) {
+            SortBy.TIMESTAMP_DESC -> "timestamp DESC"
+            SortBy.TIMESTAMP_ASC -> "timestamp ASC"
+            SortBy.CONFIDENCE_DESC -> "confidence DESC"
+            SortBy.CONFIDENCE_ASC -> "confidence ASC"
+            SortBy.DURATION_DESC -> "duration DESC"
+            SortBy.DURATION_ASC -> "duration ASC"
+            SortBy.ALPHABETICAL_ASC -> "originalText ASC"
+            SortBy.ALPHABETICAL_DESC -> "originalText DESC"
+        })
+
+        criteria.limit?.let {
+            query.append(" LIMIT ?")
+            args.add(it)
+        }
+
+        return SimpleSQLiteQuery(query.toString(), args.toTypedArray())
     }
     
     private suspend fun calculateStatistics() {
         try {
-            val entries = translationHistory.values.toList()
+            val entries = dao.getHistory().map { it.toRepositoryModel() }
             
             val total = entries.size.toLong()
             val successful = entries.count { it.success }.toLong()
@@ -664,7 +682,12 @@ class TranslationHistoryRepository private constructor(private val context: Cont
     }
     
     private suspend fun updateFlows() {
-        _historyFlow.value = translationHistory.values.sortedByDescending { it.timestamp }
+        val entries = dao.getHistory().map { it.toRepositoryModel() }
+        _historyFlow.value = entries.sortedByDescending { it.timestamp }
+        updateStatistics()
+    }
+    
+    private suspend fun updateStatistics() {
         calculateStatistics()
     }
 
@@ -677,17 +700,8 @@ class TranslationHistoryRepository private constructor(private val context: Cont
     )
 
     private suspend fun loadHistoryFromDatabase() {
-        val entities = dao.getHistory()
-        applySnapshot(entities)
-        updateFlows()
-    }
-
-    private fun applySnapshot(entities: List<TranslationHistoryEntity>) {
-        translationHistory.clear()
-        entities.forEach { entity ->
-            val entry = entity.toRepositoryModel()
-            translationHistory[entry.id] = entry
-        }
+        // Initial load will be handled by the Room observer
+        // No explicit loading needed as observer will trigger on subscription
     }
 
     private fun startObservingDao() {
@@ -696,8 +710,10 @@ class TranslationHistoryRepository private constructor(private val context: Cont
         observeJob = observationScope.launch {
             dao.observeHistory().collectLatest { entities ->
                 repositoryMutex.withLock {
-                    applySnapshot(entities)
-                    updateFlows()
+                    // Direct conversion from Room entities to UI state
+                    val entries = entities.map { it.toRepositoryModel() }
+                    _historyFlow.value = entries
+                    updateStatistics()
                 }
             }
         }
@@ -722,19 +738,61 @@ class TranslationHistoryRepository private constructor(private val context: Cont
     private suspend fun performCleanup() {
         try {
             val entriesToKeep = MAX_HISTORY_ENTRIES / 2
-            val sortedEntries = translationHistory.values.sortedByDescending { it.timestamp }
+            val allEntries = dao.getHistory().map { it.toRepositoryModel() }
+            val sortedEntries = allEntries.sortedByDescending { it.timestamp }
             
             val entriesToRemove = sortedEntries.drop(entriesToKeep)
             if (entriesToRemove.isNotEmpty()) {
                 dao.deleteByIds(entriesToRemove.map { it.id })
-                entriesToRemove.forEach { entry -> translationHistory.remove(entry.id) }
-                updateFlows()
+                // No need to manually update cache - Room observer will handle this
             }
             
             Log.d(TAG, "Cleanup performed: removed ${entriesToRemove.size} old entries")
             
         } catch (e: Exception) {
             Log.e(TAG, "Failed to perform cleanup", e)
+        }
+    }
+
+    // Retention job management
+    private var retentionJob: Job? = null
+
+    private fun scheduleRetentionJob() {
+        if (retentionJob?.isActive == true) return
+        retentionJob = observationScope.launch {
+            // Initial delay before first pass (avoid startup contention)
+            delay(10_000L)
+            while (isActive) {
+                try {
+                    performRetentionPass()
+                } catch (t: Throwable) {
+                    Log.e(TAG, "Retention pass failed", t)
+                }
+                val prefsMgr = com.example.gloabtranslate.core.data.preferences.UserPreferencesManager.getInstance(context)
+                val intervalHours = (prefsMgr.getPreference("cleanupIntervalHours") as? Int)?.coerceIn(1,168) ?: 24
+                delay(intervalHours * 60L * 60L * 1000L)
+            }
+        }
+    }
+
+    private suspend fun performRetentionPass() = withContext(Dispatchers.IO) {
+        val prefsMgr = com.example.gloabtranslate.core.data.preferences.UserPreferencesManager.getInstance(context)
+        val retentionDays = (prefsMgr.getPreference("dataRetentionDays") as? Int)
+            ?.coerceIn(1, MAX_RETENTION_DAYS) ?: DEFAULT_RETENTION_DAYS
+        val threshold = System.currentTimeMillis() - retentionDays * 24L * 60L * 60L * 1000L
+        var removed = 0
+        try {
+            repositoryMutex.withLock {
+                removed = dao.deleteOlderThan(threshold)
+            }
+            if (removed > 0) {
+                Log.d(TAG, "Retention removed $removed entries older than $retentionDays days")
+                updateFlows()
+            } else {
+                Log.d(TAG, "Retention pass completed - no removals (retentionDays=$retentionDays)")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Retention pass failed", e)
         }
     }
     
@@ -762,7 +820,9 @@ class TranslationHistoryRepository private constructor(private val context: Cont
         try {
             observeJob?.cancel()
             observeJob = null
-            translationHistory.clear()
+            retentionJob?.cancel()
+            retentionJob = null
+            // No need to clear translationHistory - it's removed
             _historyFlow.value = emptyList()
             _statisticsFlow.value = null
             isInitialized.set(false)

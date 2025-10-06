@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.example.gloabtranslate.macrobenchmark"
-    compileSdk = libs.versions.compileSdk.get().toInt()
+    compileSdk = 36
 
     defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
-        targetSdk = libs.versions.targetSdk.get().toInt()
 
+        minSdk = 34
+        targetSdk = 36
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
         // Build config fields for benchmarking
@@ -19,10 +19,16 @@ android {
         buildConfigField("boolean", "ENABLE_DETAILED_LOGGING", "true")
     }
 
-    // Add flavor dimensions to match the app module
+    // Match the app module's flavor configuration
     flavorDimensions += "environment"
     productFlavors {
         create("development") {
+            dimension = "environment"
+        }
+        create("staging") {
+            dimension = "environment"
+        }
+        create("production") {
             dimension = "environment"
         }
     }
@@ -51,6 +57,8 @@ android {
     buildFeatures {
         buildConfig = true
     }
+    compileSdkMinor = 1
+    buildToolsVersion = "36.1.0"
 }
 
 kotlin {
@@ -64,12 +72,9 @@ dependencies {
     implementation(libs.androidx.benchmark.macro.junit4)
     
     // Additional dependencies for comprehensive benchmarking
-    implementation("androidx.test:runner:1.5.2")
-    implementation("androidx.test:rules:1.5.0")
-    implementation("androidx.test.ext:junit:1.1.5")
-    
-    // Memory profiling
-    implementation("androidx.benchmark:benchmark-macro-junit4:1.2.2")
+    implementation(libs.test.runner)
+    implementation(libs.test.rules)
+    implementation(libs.androidx.junit)
     
     // Kotlin dependencies
     implementation(libs.kotlinx.coroutines.core)
@@ -80,17 +85,10 @@ dependencies {
     implementation(project(":speech"))
     implementation(project(":nlp"))
     implementation(project(":tts"))
-    
-    // App dependency for benchmarking - specify development flavor
-    implementation(project(":app", configuration = "developmentBenchmarkRuntimeElements"))
 }
 
 androidComponents {
-    beforeVariants(selector().all()) {
-        it.enable = it.buildType == "benchmark" && it.flavorName == "development"
-    }
-    
-    onVariants(selector().all()) { variant ->
-        variant.instrumentationRunnerArguments.put("targetApp", "com.example.gloabtranslate.dev")
+    beforeVariants(selector().all()) { variantBuilder ->
+        variantBuilder.enable = variantBuilder.buildType == "benchmark"
     }
 }

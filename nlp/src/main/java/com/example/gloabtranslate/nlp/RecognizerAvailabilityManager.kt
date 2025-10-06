@@ -21,7 +21,10 @@ import kotlin.coroutines.resumeWithException
  * Manages recognizer availability and provides graceful fallback mechanisms.
  * Handles on-device vs cloud-based recognition based on Google component availability.
  */
-class RecognizerAvailabilityManager(private val context: Context) {
+class RecognizerAvailabilityManager(
+    private val context: Context,
+    private val modelManager: ModelManager
+) {
     
     companion object {
         private const val TAG = "RecognizerAvailability"
@@ -29,7 +32,7 @@ class RecognizerAvailabilityManager(private val context: Context) {
     }
     
     private val googleApiAvailability = GoogleApiAvailability.getInstance()
-    private val modelManager by lazy { ModelManager.getInstance(context) }
+    // ModelManager is now injected via constructor
     
     /**
      * Represents the current recognition capability status

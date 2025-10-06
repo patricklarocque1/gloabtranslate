@@ -18,6 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
+import java.io.Closeable
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import com.example.gloabtranslate.speech.AudioRecorder.AudioFrame
@@ -29,8 +30,9 @@ import com.example.gloabtranslate.speech.config.AudioConfigurationObserver
  */
 class AudioProcessor(
     private val context: Context,
-    private val platform: AudioProcessorPlatform = AndroidAudioProcessorPlatform(context)
-) {
+    private val configurationManager: ConfigurationManager,
+    private val platform: AudioProcessorPlatform = AndroidAudioProcessorPlatform(context, configurationManager)
+) : Closeable {
     
     companion object {
         private const val TAG = "AudioProcessor"
@@ -52,7 +54,6 @@ class AudioProcessor(
     private var sampleRate = DEFAULT_SAMPLE_RATE
     private var bufferSize = DEFAULT_BUFFER_SIZE
     private var chunkSize = DEFAULT_CHUNK_SIZE
-    private val configurationManager = ConfigurationManager.getInstance(context)
     private val configurationObserver = platform.createConfigurationObserver()
     private val processorScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var activePreferencesConfig: PreferencesAudioConfig? = null
@@ -648,7 +649,7 @@ class AudioProcessor(
         return fft
     }
 
-    fun cleanup() {
+    override fun close() {
         configurationObserver.cleanup()
         processorScope.cancel()
         audioBuffer.clear()
@@ -723,10 +724,13 @@ interface AudioProcessorPlatform {
     fun cleanup()
 }
 
-internal class AndroidAudioProcessorPlatform(private val context: Context) : AudioProcessorPlatform {
+internal class AndroidAudioProcessorPlatform(
+    private val context: Context, 
+    private val configurationManager: ConfigurationManager
+) : AudioProcessorPlatform {
     override fun getCurrentAudioConfig(): PreferencesAudioConfig {
-        return kotlinx.coroutines.runBlocking { 
-            ConfigurationManager.getInstance(context).currentAudioConfig()
+        return runBlocking { 
+            configurationManager.currentAudioConfig()
         }
     }
 

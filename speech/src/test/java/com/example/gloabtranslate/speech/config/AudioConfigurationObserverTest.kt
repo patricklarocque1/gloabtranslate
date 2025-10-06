@@ -2,6 +2,7 @@ package com.example.gloabtranslate.speech.config
 
 import android.content.Context
 import com.example.gloabtranslate.core.data.preferences.UserPreferencesManager
+import com.example.gloabtranslate.core.data.config.ConfigurationManager
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.test.runTest
@@ -27,10 +28,11 @@ class AudioConfigurationObserverTest {
     @Before
     fun setUp() = runTest {
         context = RuntimeEnvironment.getApplication()
-        preferencesManager = UserPreferencesManager.getInstance(context)
+    preferencesManager = UserPreferencesManager.getInstance(context)
         preferencesManager.initialize()
         preferencesManager.resetPreferences()
-        observer = AudioConfigurationObserver(context)
+    // Provide a configuration manager instance if observer evolves to expect DI in future
+    observer = AudioConfigurationObserver(context)
     }
 
     @After
@@ -41,14 +43,14 @@ class AudioConfigurationObserverTest {
 
     @Test
     fun emitsCriticalAndNonCriticalUpdates() = runTest {
-        var criticalConfig: Int? = null
-        var nonCriticalConfig: Int? = null
+        val criticalConfigChannel = Channel<Int>(Channel.CONFLATED)
+        val nonCriticalConfigChannel = Channel<Int>(Channel.CONFLATED)
 
         observer.setOnCriticalConfigChanged { config ->
-            criticalConfig = config.sampleRate
+            criticalConfigChannel.trySend(config.sampleRate)
         }
         observer.setOnConfigChanged { config ->
-            nonCriticalConfig = config.audioBufferSize
+            nonCriticalConfigChannel.trySend(config.audioBufferSize)
         }
         observer.start()
 
@@ -56,11 +58,10 @@ class AudioConfigurationObserverTest {
         preferencesManager.setPreference("sampleRate", 44100)
         preferencesManager.setPreference("audioBufferSize", 2048)
 
-        // Give some time for the observer to process, but don't rely on strict timing
-        kotlinx.coroutines.delay(100)
-
-        // Test basic functionality - observer should be capable of handling callbacks
-        // (The actual configuration updates might be environment-dependent)
-        assert(observer != null) // Basic sanity check
+        // Assert that the callbacks were invoked with the correct values
+        withTimeout(1000) {
+            assertEquals(44100, criticalConfigChannel.receive())
+            assertEquals(2048, nonCriticalConfigChannel.receive())
+        }
     }
 }

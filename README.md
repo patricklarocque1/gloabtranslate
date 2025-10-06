@@ -114,6 +114,50 @@ Dependabot is configured to open grouped PRs weekly.
 ## Logging & Monitoring
 `core/logging` and `core/monitoring` provide structured logging + performance hooks. Extend these to integrate Crashlytics or custom analytics (Firebase BOM already available via version catalog).
 
+## Architecture & Dependency Injection
+Recent refactors consolidated configuration, model, and pipeline management behind injectable components to remove ad‑hoc singletons and improve lifecycle safety.
+
+### Key Principles
+- Single Source of Truth: Room + repositories expose flows; redundant in‑memory caches removed.
+- Constructor Injection: `ModelManager`, `TranslationPipeline`, `RecognitionService`, `ConfigurationManager` now supplied via Dagger instead of `getInstance()`.
+- Coordinated Startup: `ServiceCoordinator` phases Model → (Recognition & TTS in parallel) → TranslationPipeline; applies timeouts & retry.
+- Resilience Layer: `ErrorRecoverySystem` wraps critical initialization (recognition, TTS) with retry + circuit breaker semantics.
+- Observability: `systemHealth` and `metrics` StateFlows emit readiness + errors; UI toolbar shows live health badge text.
+
+### Service Health & Metrics
+```kotlin
+val systemHealth: StateFlow<SystemHealth>
+val metrics: StateFlow<ServiceMetrics>
+data class ServiceMetrics(
+  val retryCounts: Map<ServiceType, Int>,
+  val lastErrors: Map<ServiceType, String?>,
+  val lastUpdated: Long,
+  val health: SystemHealth
+)
+```
+`MainActivity` subscribes to `systemHealth` and updates the toolbar subtitle (Healthy / Degraded / Critical / Starting…).
+
+### Migration Notes
+- Removed production usages of `ConfigurationManager.getInstance`.
+- `AudioRecordingService` now uses constructor injection via Dagger (`AudioRecorder` provided in `SpeechModule`).
+- TTS failures degrade health; future enhancement: scheduled re-init without blocking first pass.
+
+### Next Enhancements
+- Adaptive timeouts from `PerformanceConfig`.
+- Recovery wrapping of translation model ensure/download.
+- Diagnostics screen showing metrics snapshot & circuit breaker state.
+- Optional Hilt migration to simplify component graph.
+
+### Post AudioRecordingService DI Follow-ups
+- Wrap audio recording start/stop lifecycle with `ErrorRecoverySystem` (new ServiceType e.g. AUDIO_RECORDING) for parity with other services.
+- Emit basic recorder health/latency metrics into `ServiceCoordinator.metrics` (buffer underruns, pause/resume counts).
+- Add instrumentation tests asserting injection works (service launches, injected `AudioRecorder` non-null).
+- Consider migrating remaining manual constructions in `speech` module (e.g., `AudioConfigurationObserver`) to injected providers to avoid duplicate `ConfigurationManager` instantiation sites.
+
+### External Service State Reporting
+`speech` module now reports audio recording lifecycle via `ExternalServiceStateReporter` (in `core`), which is adapted in the app layer to `ServiceCoordinator.reportExternalServiceState`. This prevents a reverse dependency from `speech` to `app` while still surfacing state transitions (INITIALIZING/READY/ERROR/STOPPED) for unified health metrics.
+
+
 ## Roadmap (WIP)
 - [ ] Improve speech recognition provider abstraction
 - [ ] Add Compose UI layer

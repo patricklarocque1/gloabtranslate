@@ -25,6 +25,7 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class AudioProcessorTest {
     private val context: Context = mockk(relaxed = true)
+    private lateinit var configurationManager: ConfigurationManager
     private lateinit var platform: FakeAudioProcessorPlatform
     private lateinit var processor: AudioProcessor
 
@@ -38,11 +39,13 @@ class AudioProcessorTest {
         every { Log.e(any<String>(), any<String>(), any<Throwable>()) } returns 0
 
         platform = FakeAudioProcessorPlatform()
-        processor = AudioProcessor(context, platform)
+        configurationManager = mockk(relaxed = true)
+        processor = AudioProcessor(context, configurationManager, platform)
     }
 
     @After
     fun tearDown() {
+        processor.close()
         clearAllMocks()
         unmockkStatic(Log::class)
     }
@@ -176,10 +179,10 @@ class AudioProcessorTest {
     }
 
     @Test
-    fun cleanup_stopsProcessingAndClearsResources() = runTest {
+    fun close_stopsProcessingAndClearsResources() = runTest {
         assertTrue(processor.initialize().success)
 
-        processor.cleanup()
+        processor.close()
 
         assertEquals(1, platform.cleanupCallCount)
     }
@@ -235,11 +238,4 @@ private class FakeAudioProcessorPlatform : AudioProcessorPlatform {
         }
         return result
     }
-}
-
-// Platform interface for AudioProcessor testability  
-interface AudioProcessorPlatform {
-    fun getCurrentAudioConfig(): PreferencesAudioConfig
-    fun createConfigurationObserver(): AudioConfigurationObserver
-    fun cleanup()
 }

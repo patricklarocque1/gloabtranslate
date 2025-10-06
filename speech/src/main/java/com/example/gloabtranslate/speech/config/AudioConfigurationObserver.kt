@@ -26,12 +26,16 @@ class AudioConfigurationObserver(
         private const val TAG = "AudioConfigObserver"
     }
 
-    private val configurationManager = ConfigurationManager.getInstance(context)
+    // TODO: ConfigurationManager should be injected via constructor for proper DI
+    private val configurationManager = com.example.gloabtranslate.core.data.config.ConfigurationManager(
+        com.example.gloabtranslate.core.data.preferences.UserPreferencesManager.getInstance(context)
+    )
     private var observationJob: Job? = null
     private var currentConfig: AudioConfig? = null
 
-    private var onConfigChanged: (AudioConfig) -> Unit = {}
-    private var onCriticalConfigChanged: (AudioConfig) -> Unit = {}
+    // Initialize with no-op lambdas that accept (and ignore) the AudioConfig parameter explicitly
+    private var onConfigChanged: (AudioConfig) -> Unit = { _ -> }
+    private var onCriticalConfigChanged: (AudioConfig) -> Unit = { _ -> }
 
     fun start() {
         if (observationJob != null) return

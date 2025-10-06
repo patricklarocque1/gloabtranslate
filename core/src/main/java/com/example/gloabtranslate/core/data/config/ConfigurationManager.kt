@@ -9,21 +9,13 @@ import kotlinx.coroutines.flow.map
 
 /**
  * Bridges user preferences to strongly-typed runtime configuration objects that update reactively.
+ * Now properly designed for dependency injection with proper lifecycle management.
  */
-class ConfigurationManager private constructor(context: Context) {
+interface DebugConfigProvider { val debugConfig: Flow<DebugConfig> }
 
-    companion object {
-        @Volatile
-        private var INSTANCE: ConfigurationManager? = null
-
-        fun getInstance(context: Context): ConfigurationManager {
-            return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: ConfigurationManager(context.applicationContext).also { INSTANCE = it }
-            }
-        }
-    }
-
-    private val preferencesManager = UserPreferencesManager.getInstance(context.applicationContext)
+class ConfigurationManager(
+    private val preferencesManager: UserPreferencesManager
+) : DebugConfigProvider {
     private val preferencesFlow = preferencesManager.preferencesFlow
 
     val themeConfig: Flow<ThemeConfig> = preferencesFlow
@@ -105,7 +97,7 @@ class ConfigurationManager private constructor(context: Context) {
         }
         .distinctUntilChanged()
 
-    val debugConfig: Flow<DebugConfig> = preferencesFlow
+    override val debugConfig: Flow<DebugConfig> = preferencesFlow
         .map { prefs ->
             DebugConfig(
                 enableDebugMode = prefs.getBooleanValue("enableDebugMode", default = false),
@@ -153,6 +145,31 @@ class ConfigurationManager private constructor(context: Context) {
     }
 
     private suspend fun ensurePreferencesInitialized() {
+        preferencesManager.initialize()
+    }
+    
+    /**
+     * Initialize the configuration manager
+     */
+    suspend fun initialize() {
+        ensurePreferencesInitialized()
+    }
+    
+    /**
+     * Cleanup resources and reset configuration caches
+     * Should be called when configuration needs to be refreshed or app is shutting down
+     */
+    fun cleanup() {
+        // Configuration flows are derived from preferences flow
+        // No explicit cleanup needed as flows will be garbage collected
+        // when preferences manager is cleaned up
+    }
+    
+    /**
+     * Force refresh all configurations by ensuring preferences are up to date
+     */
+    suspend fun refreshConfigurations() {
+        // Re-initialize preferences manager to pick up any external changes
         preferencesManager.initialize()
     }
 }

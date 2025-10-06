@@ -1096,7 +1096,7 @@ class SettingsActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferen
             private val titleTextView: TextView = itemView.findViewById(R.id.title_text_view)
             private val descriptionTextView: TextView = itemView.findViewById(R.id.description_text_view)
             private val valueTextView: TextView = itemView.findViewById(R.id.value_text_view)
-            private val switchView: Switch = itemView.findViewById(R.id.switch_view)
+            private val switchView: com.google.android.material.materialswitch.MaterialSwitch = itemView.findViewById(R.id.switch_view)
             private val rootLayout: LinearLayout = itemView.findViewById(R.id.root_layout)
             
             fun bind(item: SettingsItem) {

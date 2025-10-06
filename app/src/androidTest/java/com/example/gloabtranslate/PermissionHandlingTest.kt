@@ -16,9 +16,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 
 /**
  * Integration tests for permission handling functionality.
@@ -73,7 +74,7 @@ class PermissionHandlingTest {
             assertEquals(PackageManager.PERMISSION_GRANTED, permission, "POST_NOTIFICATIONS permission should be granted on Android 13+")
         } else {
             // On older versions, this permission doesn't exist
-            assertTrue(true, "POST_NOTIFICATIONS permission not required on Android < 13")
+            assertTrue("POST_NOTIFICATIONS permission not required on Android < 13", true)
         }
     }
 
@@ -147,7 +148,7 @@ class PermissionHandlingTest {
 
         // Then
         // The callback should handle the permissions without throwing exceptions
-        assertTrue(true, "Permission launcher callback should handle all granted permissions")
+        assertTrue("Permission launcher callback should handle all granted permissions", true)
     }
 
     @Test
@@ -165,7 +166,7 @@ class PermissionHandlingTest {
 
         // Then
         // The callback should handle the denied permissions without throwing exceptions
-        assertTrue(true, "Permission launcher callback should handle denied permissions")
+        assertTrue("Permission launcher callback should handle denied permissions", true)
     }
 
     @Test
@@ -183,7 +184,7 @@ class PermissionHandlingTest {
 
         // Then
         // The callback should handle all denied permissions without throwing exceptions
-        assertTrue(true, "Permission launcher callback should handle all denied permissions")
+        assertTrue("Permission launcher callback should handle all denied permissions", true)
     }
 
     @Test
@@ -197,7 +198,7 @@ class PermissionHandlingTest {
 
         // Then
         // The callback should handle empty permissions without throwing exceptions
-        assertTrue(true, "Permission launcher callback should handle empty permissions")
+        assertTrue("Permission launcher callback should handle empty permissions", true)
     }
 
     @Test
@@ -215,11 +216,11 @@ class PermissionHandlingTest {
         }
 
         // Then
-        assertTrue(permissionsToCheck.contains(Manifest.permission.RECORD_AUDIO), "RECORD_AUDIO should always be checked")
-        assertTrue(permissionsToCheck.contains(Manifest.permission.INTERNET), "INTERNET should always be checked")
+        assertTrue("RECORD_AUDIO should always be checked", permissionsToCheck.contains(Manifest.permission.RECORD_AUDIO))
+        assertTrue("INTERNET should always be checked", permissionsToCheck.contains(Manifest.permission.INTERNET))
         
         if (currentSdkVersion >= Build.VERSION_CODES.TIRAMISU) {
-            assertTrue(permissionsToCheck.contains(Manifest.permission.POST_NOTIFICATIONS), "POST_NOTIFICATIONS should be checked on Android 13+")
+            assertTrue("POST_NOTIFICATIONS should be checked on Android 13+", permissionsToCheck.contains(Manifest.permission.POST_NOTIFICATIONS))
         } else {
             assertFalse(permissionsToCheck.contains(Manifest.permission.POST_NOTIFICATIONS), "POST_NOTIFICATIONS should not be checked on Android < 13")
         }
@@ -290,7 +291,7 @@ class PermissionHandlingTest {
 
         // Then
         val duration = endTime - startTime
-        assertTrue(duration < 1000, "Permission checking should complete within 1 second")
+        assertTrue("Permission checking should complete within 1 second", duration < 1000)
     }
 
     @Test
