@@ -19,7 +19,7 @@ uiautomator = "2.2.0"
 benchmarkMacroJunit4 = "1.2.0-beta01"
 
 # Kotlin
-kotlin = "2.2.20"
+kotlin = "2.2.21"
 kotlinCompiler = "2.2.20"
 
 # Kotlin Coroutines (confirmed latest stable as of Aug 30, 2024)
@@ -40,7 +40,7 @@ play-services-tflite = "16.4.0"
 play-services-mlkit-text-recognition = "19.0.0"
 
 # Kotlin Serialization
-kotlinx-serialization-json = "1.6.0"
+kotlinx-serialization-json = "1.9.0"
 
 # Testing dependencies
 mockito = "5.8.0"
