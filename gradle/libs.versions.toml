@@ -65,7 +65,7 @@ work = "2.10.5"
 dagger = "2.57.1"
 
 # KSP (Kotlin Symbol Processing)
-ksp = "2.2.20-2.0.3"
+ksp = "2.3.0"
 
 # Firebase (if needed)
 firebase-bom = "33.1.2"
