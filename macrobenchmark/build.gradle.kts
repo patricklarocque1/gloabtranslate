@@ -64,12 +64,12 @@ dependencies {
     implementation(libs.androidx.benchmark.macro.junit4)
     
     // Additional dependencies for comprehensive benchmarking
-    implementation("androidx.test:runner:1.5.2")
-    implementation("androidx.test:rules:1.5.0")
-    implementation("androidx.test.ext:junit:1.1.5")
+    implementation("androidx.test:runner:1.7.0")
+    implementation("androidx.test:rules:1.7.0")
+    implementation("androidx.test.ext:junit:1.3.0")
     
     // Memory profiling
-    implementation("androidx.benchmark:benchmark-macro-junit4:1.2.2")
+    implementation("androidx.benchmark:benchmark-macro-junit4:1.4.1")
     
     // Kotlin dependencies
     implementation(libs.kotlinx.coroutines.core)
